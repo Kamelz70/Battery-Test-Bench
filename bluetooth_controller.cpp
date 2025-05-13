@@ -9,7 +9,7 @@ BLEServer* pServer = NULL;
 BLECharacteristic* pCharacteristic = NULL;
 
 //////////////////////// Your custom BLE UUIDs
-#define SERVICE_UUID        "58f4c711-037d-4dd5-8b2c-80a46b3d9ab4"
+#define SERVICE_UUID "58f4c711-037d-4dd5-8b2c-80a46b3d9ab4"
 #define CHARACTERISTIC_UUID "31c9dd7b-e55d-4e99-8b8a-e7a00857949a"
 
 
@@ -29,13 +29,13 @@ BLECharacteristic* pCharacteristic = NULL;
 class MyServerCallbacks : public BLEServerCallbacks {
   void onDisconnect(BLEServer* pServer) override {
     Serial.println("Client Disconnected - Restarting advertising...");
-    delay(100);
+    // delay(100);
     BLEDevice::getAdvertising()->start();
   }
-    void onConnect(BLEServer* pServer) {
+  void onConnect(BLEServer* pServer) {
     Serial.println("Client Connected");
   }
- 
+
   //    void onDisconnect(BLEServer* pServer) {
   //   Serial.println("Client Disconnected - Restarting advertising...");
   //     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
@@ -45,7 +45,7 @@ class MyServerCallbacks : public BLEServerCallbacks {
 };
 //  BLE recieving callback
 class MyCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic *pCharacteristic) {
+  void onWrite(BLECharacteristic* pCharacteristic) {
     std::string rxValue = pCharacteristic->getValue();  // Get incoming data
 
     if (rxValue.length() > 0) {
@@ -56,7 +56,6 @@ class MyCallbacks : public BLECharacteristicCallbacks {
       dispatchRecieved(String(rxValue.c_str()));
     }
   }
-
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void setupBLE(void (*onRecieved)(String recievedString)) {
@@ -64,28 +63,24 @@ void setupBLE(void (*onRecieved)(String recievedString)) {
   BLEDevice::setMTU(50);
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks());  // Handles connect/disconnect
-  BLEService *pService = pServer->createService(SERVICE_UUID);
+  BLEService* pService = pServer->createService(SERVICE_UUID);
 
   pCharacteristic = pService->createCharacteristic(
-                      CHARACTERISTIC_UUID,
-                      BLECharacteristic::PROPERTY_READ |
-                      BLECharacteristic::PROPERTY_NOTIFY |
-                      BLECharacteristic::PROPERTY_WRITE  
-                    );
+    CHARACTERISTIC_UUID,
+    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY | BLECharacteristic::PROPERTY_WRITE);
   pCharacteristic->addDescriptor(new BLE2902());
   // pCharacteristic->setValue("Hello App Inventor!");
   pCharacteristic->setCallbacks(new MyCallbacks());
   pService->start();
 
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pAdvertising->start();
-  dispatchRecieved=onRecieved;
+  dispatchRecieved = onRecieved;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void sendBLEData(char circuitMode) {
-  const long interval = 1000;  // 0.5 second interval
-  delay(interval);
+
 
   // Generate random mock data within ranges
   float voltage = MIN_VOLTAGE + (rand() % (int)((MAX_VOLTAGE - MIN_VOLTAGE) * 100)) / 100.0;
@@ -95,19 +90,17 @@ void sendBLEData(char circuitMode) {
   float soc = MIN_SOC + (rand() % (int)((MAX_SOC - MIN_SOC) * 100)) / 100.0;
 
   // Format the data string (CSV format)
-  String dataString = "<" 
-    + String(voltage, 2) + "," 
-    + String(current, 2) + "," 
-    + String(temperature, 2) + "," 
-    + String(soh,2) + "," 
-    + String(soc,2) +"," 
-    +circuitMode
-    + ">";
+  String dataString = "<"
+                      + String(voltage, 2) + ","
+                      + String(current, 2) + ","
+                      + String(temperature, 2) + ","
+                      + String(soh, 2) + ","
+                      + String(soc, 2) + ","
+                      + circuitMode
+                      + ">";
   // Send via Bluetooth (assuming your bluetooth_controller has this function)
   // Serial.print(dataString);
   pCharacteristic->setValue(dataString.c_str());
   pCharacteristic->notify();
-    Serial.println("Sent: " + dataString);
-
-
+  Serial.println("Sent: " + dataString);
 }
