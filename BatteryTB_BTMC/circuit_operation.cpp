@@ -45,6 +45,14 @@ float facPwmDeltaLim;
 float facPwmLim;
 float measuredVoltage;
 float measuredCurrent;
+
+// for pulse discharging
+unsigned long pulseOnTime = 100000;  // milliseconds ON
+unsigned long pulseOffTime = 0;  // milliseconds OFF
+bool pulseStateOn = true;            // true = ON phase, false = OFF phase
+unsigned long pulsePreviousMillis = 0;
+//******************
+
 void circuitOperationSetup() {
   pinMode(pwmPin, OUTPUT);
 
@@ -64,15 +72,16 @@ void operateCircuit(enum CIRCUITMODE CircuitMode) {
   if (currentMillis - previousMillis >= Gridtime) {
     previousMillis += Gridtime;
 
-    measuredVoltage = ads.readADC_SingleEnded(ADC_VOLTAGE_CHANNEL) * (4.096 / 65536.0);
-    measuredCurrent = ads.readADC_SingleEnded(ADC_CURRENT_CHANNEL) * (4.096 / 65536.0);
+    readVoltageAndCurrent();
 
     switch (CircuitMode) {
       case CIRCUITCHARGING:
-        handleCharging();
+       if (updatePulseState(currentMillis)) {
+        handleCharging();}
         break;
       case CIRCUITDISCHARGING:
-        handleDischarging();
+       if (updatePulseState(currentMillis)) {
+        handleDischarging();}
         break;
       case CIRCUITOFF:
         handleOff();
@@ -90,7 +99,7 @@ float getCircuitCurrent() {
 
 void handleCharging() {
   voltsShuntAbs = -1 * (measuredCurrent - measuredVoltage);
-  x = voltsChrgMax - measuredCurrent;        // Removed "*2" — not using voltage divider ( have a look here)
+  x = voltsChrgMax - 2*measuredCurrent;        // Removed "*2" — not using voltage divider ( have a look here)
   error = currDes - (voltsShuntAbs / 0.25);  // Assuming 0.25Ω effective shunt resistance ( have a look here)
 
   facPwmP_1 = pGainChrg * error;
@@ -101,7 +110,7 @@ void handleCharging() {
 
 void handleDischarging() {
   voltsShuntAbs = measuredCurrent - measuredVoltage;
-  x = measuredCurrent - minvoltagedischarg;  // Removed "*2" — not using voltage divider ( have a look here)
+  x = 2*measuredCurrent - minvoltagedischarg;  // Removed "*2" — not using voltage divider ( have a look here)
   error = currDes - (voltsShuntAbs / 0.25);  // Assuming 0.25Ω effective shunt resistance ( have a look here)
 
   facPwmP_1 = pGainDisChrg * error;
@@ -123,7 +132,7 @@ void updateControlAndPWM() {
   facPwmDeltaLim = (facPwmP_1 + facPwmP_2) - facPwmLim;
   facPwmLim = constrain(facPwmP_1 + facPwmP_2, 0.0f, 1.0f);
 
-  int pwmValue = constrain((int)(facPwmLim * 255.0), 0, 255);
+  int pwmValue = constrain((int)(facPwmLim * 1023.0), 0, 1023.0);
   ledcWrite(PWM_CHANNEL, pwmValue);
 
   Serial.print("Current: ");
@@ -133,3 +142,30 @@ void updateControlAndPWM() {
   Serial.print(" V | PWM: ");
   Serial.println(pwmValue);
 }
+bool updatePulseState(unsigned long currentMillis) {
+  if (pulseStateOn && (currentMillis - pulsePreviousMillis >= pulseOnTime)) {
+    pulseStateOn = false;                      // Switch to OFF
+    pulsePreviousMillis = currentMillis;
+    ledcWrite(1, 0);                         // Turn off PWM
+  }
+  else if (!pulseStateOn && (currentMillis - pulsePreviousMillis >= pulseOffTime)) {
+    pulseStateOn = true;                       // Switch to ON
+    pulsePreviousMillis = currentMillis;
+  }
+
+  return pulseStateOn;
+}
+
+void readVoltageAndCurrent() {
+  // Read battery voltage from A0 (after voltage divider)
+  int16_t adc_volt = ads.readADC_SingleEnded(0);
+  measuredVoltage = adc_volt * (4.096 / 32767.0);
+
+  // Read differential voltage across shunt (A1 - A3), also through voltage divider
+  int16_t adc_diff = ads.readADC_Differential_1_3();
+  float voltage_diff = adc_diff * (4.096 / 32768.0);
+
+  // Calculate current using 0.5 ohm shunt
+  measuredCurrent = voltage_diff / 0.5;
+}
+
