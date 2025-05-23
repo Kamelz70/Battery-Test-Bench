@@ -7,6 +7,8 @@ void updateControlAndPWM();
 void handleCharging();
 void handleDischarging();
 void handleOff();
+void readVoltageAndCurrent();
+bool updatePulseState(unsigned long currentMillis);
 /////////////////
 Adafruit_ADS1115 ads;
 

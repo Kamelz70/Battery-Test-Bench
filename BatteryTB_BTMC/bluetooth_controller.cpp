@@ -1,4 +1,5 @@
 #include "bluetooth_controller.h"
+#include "circuit_config.h"
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
@@ -7,11 +8,6 @@
 void (*dispatchRecieved)(String recievedString) = NULL;
 BLEServer* pServer = NULL;
 BLECharacteristic* pCharacteristic = NULL;
-
-//////////////////////// Your custom BLE UUIDs
-#define SERVICE_UUID "58f4c711-037d-4dd5-8b2c-80a46b3d9ab4"
-#define CHARACTERISTIC_UUID "31c9dd7b-e55d-4e99-8b8a-e7a00857949a"
-
 
 ///////////////////// Mock data ranges
 #define MIN_VOLTAGE 3.0
