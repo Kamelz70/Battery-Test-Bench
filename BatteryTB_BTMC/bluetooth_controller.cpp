@@ -58,6 +58,7 @@ void setupBLE(void (*onRecieved)(String recievedString)) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void sendBLEString(String msg) {
   String dataString = "<"+msg+ ">";
+  Serial.println("sending"+msg);
   // Serial.print(dataString);
   pCharacteristic->setValue(dataString.c_str());
   pCharacteristic->notify();

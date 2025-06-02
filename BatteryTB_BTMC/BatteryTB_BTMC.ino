@@ -34,8 +34,8 @@ void onRecieved(String recievedString) {
 void setup() {
   pinMode(LED_PIN, OUTPUT);
   // setup serial
-  Serial.begin(115200);
-  // BTSerial.begin(9600);     // HC-05 default baud rate
+  // Serial.begin(115200);
+  Serial.begin(9600);     // HC-05 default baud rate
   Serial.println("Serial Started");
   // Turn LED on
   digitalWrite(LED_PIN, LOW);
