@@ -56,3 +56,16 @@ bool isVoltageSafe(float voltage)
   }
   return true;
 }
+
+String getBoundariesString()
+{
+  return String(MAX_VOLTAGE, 2) + ","
+  +String(MIN_VOLTAGE, 2) + ","
+  +String(MAX_CURRENT, 2) + ","
+  +String(MIN_CURRENT, 2) + ","
+  +String(MAX_TEMPERATURE, 2) + ","
+  +String(MIN_TEMPERATURE, 2) + ","
+  +String(DEFAULT_VOLTAGE, 2) + ","
+  +String(DEFAULT_CURRENT, 2);
+
+}

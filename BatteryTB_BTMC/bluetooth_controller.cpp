@@ -9,35 +9,16 @@ void (*dispatchRecieved)(String recievedString) = NULL;
 BLEServer* pServer = NULL;
 BLECharacteristic* pCharacteristic = NULL;
 
-///////////////////// Mock data ranges
-#define MIN_VOLTAGE 3.0
-#define MAX_VOLTAGE 4.2
-#define MIN_CURRENT -5.0  // Negative for discharging
-#define MAX_CURRENT 5.0   // Positive for charging
-#define MIN_TEMP 20.0
-#define MAX_TEMP 45.0
-#define MIN_SOH 80.0
-#define MAX_SOH 100.0
-#define MIN_SOC 0.0
-#define MAX_SOC 100.0
-
-
 class MyServerCallbacks : public BLEServerCallbacks {
   void onDisconnect(BLEServer* pServer) override {
     Serial.println("Client Disconnected - Restarting advertising...");
     // delay(100);
+    //    pAdvertising->addServiceUUID(SERVICE_UUID);
     BLEDevice::getAdvertising()->start();
   }
   void onConnect(BLEServer* pServer) {
     Serial.println("Client Connected");
   }
-
-  //    void onDisconnect(BLEServer* pServer) {
-  //   Serial.println("Client Disconnected - Restarting advertising...");
-  //     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-  //    pAdvertising->addServiceUUID(SERVICE_UUID);
-  //    pAdvertising->start();
-  // }
 };
 //  BLE recieving callback
 class MyCallbacks : public BLECharacteristicCallbacks {
@@ -75,26 +56,8 @@ void setupBLE(void (*onRecieved)(String recievedString)) {
   dispatchRecieved = onRecieved;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-void sendBLEData(char circuitMode) {
-
-
-  // Generate random mock data within ranges
-  float voltage = MIN_VOLTAGE + (rand() % (int)((MAX_VOLTAGE - MIN_VOLTAGE) * 100)) / 100.0;
-  float current = MIN_CURRENT + (rand() % (int)((MAX_CURRENT - MIN_CURRENT) * 100)) / 100.0;
-  float temperature = MIN_TEMP + (rand() % (int)((MAX_TEMP - MIN_TEMP) * 100)) / 100.0;
-  float soh = MIN_SOH + (rand() % (int)((MAX_SOH - MIN_SOH) * 100)) / 100.0;
-  float soc = MIN_SOC + (rand() % (int)((MAX_SOC - MIN_SOC) * 100)) / 100.0;
-
-  // Format the data string (CSV format)
-  String dataString = "<"
-                      + String(voltage, 2) + ","
-                      + String(current, 2) + ","
-                      + String(temperature, 2) + ","
-                      + String(soh, 2) + ","
-                      + String(soc, 2) + ","
-                      + circuitMode
-                      + ">";
-  // Send via Bluetooth (assuming your bluetooth_controller has this function)
+void sendBLEString(String msg) {
+  String dataString = "<"+msg+ ">";
   // Serial.print(dataString);
   pCharacteristic->setValue(dataString.c_str());
   pCharacteristic->notify();

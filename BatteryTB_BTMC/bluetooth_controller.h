@@ -2,7 +2,7 @@
 #define BLUETOOTH_CONTROLLER_H
 #include <Arduino.h>
 
-void sendBLEData(char circuitMode);
+void sendBLEString(String msg);
 void setupBLE(void (*onRecieved)(String recievedString));
 
 #endif

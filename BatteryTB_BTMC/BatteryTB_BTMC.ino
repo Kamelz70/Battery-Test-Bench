@@ -1,6 +1,8 @@
 #include "bluetooth_controller.h"
 #include "circuit_operation.h"
+#include "circuit_measurements.h"
 #include "custom_types.h"
+#include "circuit_safety.h"
 
 #define BLE_SEND_INTERVAL 1000
 unsigned long lastBLETriggerMillis = 0;
@@ -22,6 +24,11 @@ void onRecieved(String recievedString) {
         break;
     }
   }
+  else if (recievedString.equals("getsettings")){
+    String circuitSettings=getBoundariesString();
+    sendBLEString(circuitSettings);
+
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
@@ -41,7 +48,8 @@ void loop() {
   unsigned long currentMillis = millis();
   if (currentMillis - lastBLETriggerMillis >= BLE_SEND_INTERVAL) {
     lastBLETriggerMillis = currentMillis;
-    sendBLEData(CircuitMode);
+    String measurementsString=getRealtimeDataString(String((char)CircuitMode));
+    sendBLEString(measurementsString);
   }
   operateCircuit(CircuitMode);
 }

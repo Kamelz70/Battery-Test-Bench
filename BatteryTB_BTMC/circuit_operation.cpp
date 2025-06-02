@@ -1,6 +1,8 @@
 #include "circuit_operation.h"
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
+#include "circuit_ads.h"
+ Adafruit_ADS1115 ads;
 
 /////////// Helper Functions
 void updateControlAndPWM();
@@ -10,7 +12,6 @@ void handleOff();
 void readVoltageAndCurrent();
 bool updatePulseState(unsigned long currentMillis);
 /////////////////
-Adafruit_ADS1115 ads;
 
 const int pwmPin = 9;
 
