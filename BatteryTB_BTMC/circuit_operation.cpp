@@ -64,8 +64,8 @@ void circuitOperationSetup() {
 
   if (!ads.begin()) {
     Serial.println("Failed to initialize ADS.");
-    while (1)
-      ;
+    // while (1)
+    //   ;
   }
   ads.setGain(GAIN_ONE);  // ±4.096V range
 }

@@ -57,8 +57,12 @@ void setupBLE(void (*onRecieved)(String recievedString)) {
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void sendBLEString(String msg) {
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  delay(1000);
   String dataString = "<"+msg+ ">";
   Serial.println("sending"+msg);
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  delay(1000);
   // Serial.print(dataString);
   pCharacteristic->setValue(dataString.c_str());
   pCharacteristic->notify();
