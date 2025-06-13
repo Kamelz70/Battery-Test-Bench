@@ -1,4 +1,3 @@
-#include <StringSplitter.h>
 #include "bluetooth_controller.h"
 #include "circuit_operation.h"
 #include "circuit_control.h"
