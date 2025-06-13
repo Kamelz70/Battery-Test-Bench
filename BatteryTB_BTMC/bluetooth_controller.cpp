@@ -37,8 +37,21 @@ class MyCallbacks : public BLECharacteristicCallbacks {
     }
   }
 };
+
+/* ---------- descriptor callback ---------- */
+class CCCDCallbacks : public BLEDescriptorCallbacks {
+  void onWrite(BLEDescriptor* desc) override {
+    // cast because BLEDescriptor is the base class
+    BLE2902* cccd = (BLE2902*)desc;
+
+    if (cccd->getNotifications()) {  // central wrote 0x01 00
+      Serial.println("Central subscribed → sending first packet");
+      dispatchConnect();  // or sendBLEString(...)
+    }
+  }
+};
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-void setupBLE(void (*onRecieved)(String recievedString),void (*onConnect)()) {
+void setupBLE(void (*onRecieved)(String recievedString), void (*onConnect)()) {
   BLEDevice::init("ESP32_TestDevice");
   BLEDevice::setMTU(50);
   pServer = BLEDevice::createServer();
@@ -48,8 +61,10 @@ void setupBLE(void (*onRecieved)(String recievedString),void (*onConnect)()) {
   pCharacteristic = pService->createCharacteristic(
     CHARACTERISTIC_UUID,
     BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY | BLECharacteristic::PROPERTY_WRITE);
-  pCharacteristic->addDescriptor(new BLE2902());
-  // pCharacteristic->setValue("Hello App Inventor!");
+  BLE2902* cccd = new BLE2902();            // create the descriptor
+  cccd->setCallbacks(new CCCDCallbacks());  // attach callbacks
+  pCharacteristic->addDescriptor(cccd);     // add to characteristic
+
   pCharacteristic->setCallbacks(new MyCallbacks());
   pService->start();
 
@@ -61,13 +76,13 @@ void setupBLE(void (*onRecieved)(String recievedString),void (*onConnect)()) {
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void sendBLEString(String msg) {
-      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  delay(1000);
-  String dataString = "<"+msg+ ">";
-  Serial.println("sending: "+msg);
-      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  delay(500);
+  String dataString = "<" + msg + ">";
+  Serial.println("sending: " + msg);
   // Serial.print(dataString);
   pCharacteristic->setValue(dataString.c_str());
   pCharacteristic->notify();
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+bool isBLEConnected() {
+  return (pServer && pServer->getConnectedCount() > 0);
 }

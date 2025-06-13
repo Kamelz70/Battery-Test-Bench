@@ -4,5 +4,5 @@
 
 void sendBLEString(String msg);
 void setupBLE(void (*onRecieved)(String recievedString),void (*onConnect)());
-
+bool isBLEConnected();
 #endif

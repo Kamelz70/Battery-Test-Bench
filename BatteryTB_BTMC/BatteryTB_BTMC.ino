@@ -35,8 +35,9 @@ void onBLERecieved(String recievedString)
 }
 void onBLEConnect()
 {
+  Serial.println("dispatchOnConnect---------------");
   sendBLEString(getBoundarySettingsString());
-  Serial.println("dispatchOnConnect");
+  Serial.println("----------------------------------");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup()
@@ -47,23 +48,21 @@ void setup()
   Serial.begin(115200);
   // Serial.begin(9600); // HC-05 default baud rate
   Serial.println("Serial Started");
-  setupBLE(&onBLERecieved,&onBLEConnect);
+  setupBLE(&onBLERecieved, &onBLEConnect);
   circuitOperationSetup();
 }
 
 void loop()
 {
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-delay(1000);
-  // put your main code here, to run repeatedly:
+  delay(1000);
   unsigned long currentMillis = millis();
-  if (currentMillis - lastBLETriggerMillis >= BLE_SEND_INTERVAL)
+  if ((currentMillis - lastBLETriggerMillis >= BLE_SEND_INTERVAL) && isBLEConnected())
   {
     lastBLETriggerMillis = currentMillis;
-
     String measurementsString = getRealtimeDataString(String((char)CircuitMode));
     sendBLEString(measurementsString);
   }
-  
+
   // operateCircuit(CircuitMode);
 }
