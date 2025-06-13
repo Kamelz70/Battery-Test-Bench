@@ -1,5 +1,6 @@
 #include "bluetooth_controller.h"
 #include "circuit_operation.h"
+#include "circuit_control.h"
 #include "circuit_measurements.h"
 #include "custom_types.h"
 #include "circuit_safety.h"
@@ -9,7 +10,7 @@ unsigned long lastBLETriggerMillis = 0;
 
 enum CIRCUITMODE CircuitMode = CIRCUITOFF;
 /////////////////////////////////////////////////////////callBack function to be sent to setup ble to be called on recieving data
-void onRecieved(String recievedString)
+void onBLERecieved(String recievedString)
 {
   if (recievedString.length() == 1)
   {
@@ -32,17 +33,21 @@ void onRecieved(String recievedString)
     sendBLEString(circuitSettings);
   }
 }
+void onBLEConnect()
+{
+  sendBLEString(getBoundarySettingsString());
+  Serial.println("dispatchOnConnect");
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
 
   // setup serial
-  // Serial.begin(115200);
-  Serial.begin(9600); // HC-05 default baud rate
+  Serial.begin(115200);
+  // Serial.begin(9600); // HC-05 default baud rate
   Serial.println("Serial Started");
-  
-  setupBLE(&onRecieved);
+  setupBLE(&onBLERecieved,&onBLEConnect);
   circuitOperationSetup();
 }
 

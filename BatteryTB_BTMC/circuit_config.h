@@ -3,8 +3,8 @@
 //CIRCUIT SAFETY
 #define MAX_VOLTAGE 4.2
 #define MIN_VOLTAGE 3.0
-#define MAX_CURRENT 5.0 
-#define MIN_CURRENT -5
+#define MAX_CURRENT -5.0 
+#define MIN_CURRENT 0
 #define MAX_TEMPERATURE 60.0
 #define MIN_TEMPERATURE 20.0
 #define MAX_STOPTIME 200

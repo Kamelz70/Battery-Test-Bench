@@ -3,6 +3,6 @@
 #include <Arduino.h>
 
 void sendBLEString(String msg);
-void setupBLE(void (*onRecieved)(String recievedString));
+void setupBLE(void (*onRecieved)(String recievedString),void (*onConnect)());
 
 #endif

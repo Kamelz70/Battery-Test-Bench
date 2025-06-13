@@ -6,6 +6,8 @@
 #include <BLEAdvertising.h>
 #include <BLE2902.h>  // for notifications
 void (*dispatchRecieved)(String recievedString) = NULL;
+void (*dispatchConnect)() = NULL;
+
 BLEServer* pServer = NULL;
 BLECharacteristic* pCharacteristic = NULL;
 
@@ -18,6 +20,7 @@ class MyServerCallbacks : public BLEServerCallbacks {
   }
   void onConnect(BLEServer* pServer) {
     Serial.println("Client Connected");
+    dispatchConnect();
   }
 };
 //  BLE recieving callback
@@ -35,7 +38,7 @@ class MyCallbacks : public BLECharacteristicCallbacks {
   }
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-void setupBLE(void (*onRecieved)(String recievedString)) {
+void setupBLE(void (*onRecieved)(String recievedString),void (*onConnect)()) {
   BLEDevice::init("ESP32_TestDevice");
   BLEDevice::setMTU(50);
   pServer = BLEDevice::createServer();
@@ -54,17 +57,17 @@ void setupBLE(void (*onRecieved)(String recievedString)) {
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pAdvertising->start();
   dispatchRecieved = onRecieved;
+  dispatchConnect = onConnect;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void sendBLEString(String msg) {
       digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   delay(1000);
   String dataString = "<"+msg+ ">";
-  Serial.println("sending"+msg);
+  Serial.println("sending: "+msg);
       digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  delay(1000);
+  delay(500);
   // Serial.print(dataString);
   pCharacteristic->setValue(dataString.c_str());
   pCharacteristic->notify();
-  Serial.println("Sent: " + dataString);
 }
