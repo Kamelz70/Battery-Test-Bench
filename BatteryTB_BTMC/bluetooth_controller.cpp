@@ -53,7 +53,7 @@ class CCCDCallbacks : public BLEDescriptorCallbacks {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void setupBLE(void (*onRecieved)(String recievedString), void (*onConnect)()) {
   BLEDevice::init("ESP32_TestDevice");
-  BLEDevice::setMTU(50);
+  BLEDevice::setMTU(90);
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks());  // Handles connect/disconnect
   BLEService* pService = pServer->createService(SERVICE_UUID);
