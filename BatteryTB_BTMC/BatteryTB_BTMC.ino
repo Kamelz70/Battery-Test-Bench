@@ -1,10 +1,10 @@
+#include <StringSplitter.h>
 #include "bluetooth_controller.h"
 #include "circuit_operation.h"
 #include "circuit_control.h"
 #include "circuit_measurements.h"
 #include "custom_types.h"
 #include "circuit_safety.h"
-
 #define BLE_SEND_INTERVAL 1000
 unsigned long lastBLETriggerMillis = 0;
 
@@ -12,26 +12,35 @@ enum CIRCUITMODE CircuitMode = CIRCUITOFF;
 /////////////////////////////////////////////////////////callBack function to be sent to setup ble to be called on recieving data
 void onBLERecieved(String recievedString)
 {
-  if (recievedString.length() == 1)
+  parseControlString(recievedString);
+}
+void parseControlString(String controlString)
+{
+
+  switch (controlString[0])
   {
-    switch (recievedString[0])
-    {
-    case 'c':
-      CircuitMode = CIRCUITCHARGING;
-      break;
-    case 'd':
-      CircuitMode = CIRCUITDISCHARGING;
-      break;
-    case 'o':
-      CircuitMode = CIRCUITOFF;
-      break;
-    }
+  case 'c':
+    CircuitMode = CIRCUITCHARGING;
+    break;
+  case 'd':
+    CircuitMode = CIRCUITDISCHARGING;
+    break;
+  case 'o':
+    CircuitMode = CIRCUITOFF;
+    return;
+    break;
+    default:
+    return;
   }
-  else if (recievedString.equals("getsettings"))
-  {
-    String circuitSettings = getBoundariesString();
-    sendBLEString(circuitSettings);
-  }
+  // (msg == "o") { CircuitMode = CIRCUITOFF; return; }
+
+  // StringSplitter splitter(msg, ',', 3);   // max 3 tokens
+  // if (splitter.getItemCount() != 3) return;
+
+  // String modeStr = splitter.getItemAtIndex(0);
+  // char   mode    = modeStr.charAt(0);
+  // float  cur     = splitter.getItemAtIndex(1).toFloat();
+  // int    stop    = splitter.getItemAtIndex(2).toInt();
 }
 void onBLEConnect()
 {
