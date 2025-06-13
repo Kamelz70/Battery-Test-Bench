@@ -8,43 +8,14 @@
 #define BLE_SEND_INTERVAL 1000
 unsigned long lastBLETriggerMillis = 0;
 
-enum CIRCUITMODE CircuitMode = CIRCUITOFF;
-/////////////////////////////////////////////////////////callBack function to be sent to setup ble to be called on recieving data
+/////////////////////////////////////////////////////////callBack functions to be sent to setup ble
 void onBLERecieved(String recievedString)
 {
   parseControlString(recievedString);
 }
-void parseControlString(String controlString)
-{
 
-  switch (controlString[0])
-  {
-  case 'c':
-    CircuitMode = CIRCUITCHARGING;
-    break;
-  case 'd':
-    CircuitMode = CIRCUITDISCHARGING;
-    break;
-  case 'o':
-    CircuitMode = CIRCUITOFF;
-    return;
-    break;
-    default:
-    return;
-  }
-  // (msg == "o") { CircuitMode = CIRCUITOFF; return; }
-
-  // StringSplitter splitter(msg, ',', 3);   // max 3 tokens
-  // if (splitter.getItemCount() != 3) return;
-
-  // String modeStr = splitter.getItemAtIndex(0);
-  // char   mode    = modeStr.charAt(0);
-  // float  cur     = splitter.getItemAtIndex(1).toFloat();
-  // int    stop    = splitter.getItemAtIndex(2).toInt();
-}
 void onBLEConnect()
 {
-  Serial.println("dispatchOnConnect---------------");
   sendBLEString(getBoundarySettingsString());
   Serial.println("----------------------------------");
 }
@@ -52,7 +23,6 @@ void onBLEConnect()
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
-
   // setup serial
   Serial.begin(115200);
   // Serial.begin(9600); // HC-05 default baud rate
@@ -64,12 +34,12 @@ void setup()
 void loop()
 {
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  delay(1000);
+  delay(100);
   unsigned long currentMillis = millis();
   if ((currentMillis - lastBLETriggerMillis >= BLE_SEND_INTERVAL) && isBLEConnected())
   {
     lastBLETriggerMillis = currentMillis;
-    String measurementsString = getRealtimeDataString(String((char)CircuitMode));
+    String measurementsString = getRealtimeDataString(getCircuitMode());
     sendBLEString(measurementsString);
   }
 

@@ -3,4 +3,7 @@
 #include <Arduino.h> 
 
 String getBoundarySettingsString();
+void parseControlString(String controlString);
+String getCircuitMode();
+
 #endif

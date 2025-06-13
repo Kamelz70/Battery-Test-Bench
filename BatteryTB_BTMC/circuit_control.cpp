@@ -1,6 +1,42 @@
 #include "circuit_control.h"
 #include "circuit_config.h"
+#include "custom_types.h"
 
+enum CIRCUITMODE CircuitMode = CIRCUITOFF;
+
+void parseControlString(String controlString)
+{
+    
+  switch (controlString[0])
+  {
+  case 'c':
+    CircuitMode = CIRCUITCHARGING;
+    break;
+  case 'd':
+    CircuitMode = CIRCUITDISCHARGING;
+    break;
+  case 'o':
+    CircuitMode = CIRCUITOFF;
+    return;
+    break;
+    default:
+    return;
+  }
+  // (msg == "o") { CircuitMode = CIRCUITOFF; return; }
+
+  // StringSplitter splitter(msg, ',', 3);   // max 3 tokens
+  // if (splitter.getItemCount() != 3) return;
+
+  // String modeStr = splitter.getItemAtIndex(0);
+  // char   mode    = modeStr.charAt(0);
+  // float  cur     = splitter.getItemAtIndex(1).toFloat();
+  // int    stop    = splitter.getItemAtIndex(2).toInt();
+}
+
+String getCircuitMode()
+{
+    return String((char)CircuitMode);
+}
 String getBoundarySettingsString()
 {
     return String((int)MAX_VOLTAGE, 2) + ","+ //1
