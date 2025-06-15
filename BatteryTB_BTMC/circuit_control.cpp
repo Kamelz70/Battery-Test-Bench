@@ -9,21 +9,6 @@ unsigned long PulseOnTime = DEFAULT_PULSE_ON_TIME_S;
 unsigned long PulseOffTime = DEFAULT_PULSE_OFF_TIME_S;
 float Current = DEFAULT_CURRENT;
 
-template <typename T1, typename T2, typename T3, typename T4>
-auto verifyValue(T1 value, T2 min, T3 max, T4 defaultValue) -> decltype(value + min + max + defaultValue)
-{
-    using ReturnType = decltype(value + min + max + defaultValue);
-    if (value >= min && value <= max)
-    {
-        return static_cast<ReturnType>(value);
-    }
-    else
-    {
-        Serial.println("Value out of bound, fallingback to default");
-        return static_cast<ReturnType>(defaultValue);
-    }
-}
-
 void parseControlString(String controlString)
 {
 
@@ -50,11 +35,12 @@ void parseControlString(String controlString)
         CircuitMode = CIRCUITDISCHARGING;
     }
         Current = splitter.getItemAtIndex(1).toFloat();
-        PulseOnTime = verifyValue(splitter.getItemAtIndex(2).toInt() * 1000, MIN_PULSE_ON_TIME_S, MAX_PULSE_ON_TIME_S, DEFAULT_PULSE_ON_TIME_S);
-        PulseOffTime = verifyValue(splitter.getItemAtIndex(3).toInt() * 1000, MIN_PULSE_OFF_TIME_S, MAX_PULSE_OFF_TIME_S, DEFAULT_PULSE_OFF_TIME_S);
+        PulseOnTime = splitter.getItemAtIndex(2).toInt() * 1000;
+        PulseOffTime = splitter.getItemAtIndex(3).toInt() * 1000;
         setPulseOnTime(PulseOnTime);
         setPulseOffTime(PulseOffTime);
-
+        setDesiredCurrent(float desiredCurrentInput);
+        
         Serial.println("Current:" + String(Current));
         Serial.println("PulseOnTime:" + String(PulseOnTime));
         Serial.println("PulseOffTime:" + String(PulseOffTime));

@@ -13,4 +13,5 @@ float getCircuitVoltage();
 float getCircuitCurrent();
 void setPulseOnTime(unsigned long pulseOnTimeInput);
 void setPulseOffTime(unsigned long pulseOffTimeInput);
+void setDesiredCurrent(float desiredCurrentInput);
 #endif

@@ -17,7 +17,7 @@ bool updatePulseState(unsigned long currentMillis);
 
 // === Control Parameters ===
 bool flgDisChrg = 1; // 1 = Discharge, 0 = Charge
-float currMaxChrgDisChrg = 1;
+float desiredCurrent = DEFAULT_CURRENT;
 float minvoltagedischarg = 2.8;
 float voltsChrgMax = 4.2;
 
@@ -152,7 +152,7 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff)
   // currLimChrgDisChrg = max(0.0f, (1 / resBat) * y);
   y = Del_V * 10;
   currLimChrgDisChrg = max(-0.1f, y);
-  currDes = min(currMaxChrgDisChrg, currLimChrgDisChrg);
+  currDes = min(desiredCurrent, currLimChrgDisChrg);
 
   facPwmP_2 += (Gridtime / 1000.0) * (iGain_error - derfacPwmAntiWiUp);
   derfacPwmAntiWiUp = T_AntiWiUp * facPwmDeltaLim;
@@ -237,12 +237,33 @@ float getCircuitCurrent()
 }
 void setPulseOnTime(unsigned long pulseOnTimeInput)
 {
-  unsigned long pulseOnTime = pulseOnTimeInput; 
+  pulseOnTime=verifyValue(pulseOnTimeInput, MIN_PULSE_ON_TIME_S*1000, MAX_PULSE_ON_TIME_S*1000, DEFAULT_PULSE_ON_TIME_S*1000);
 }
 
 void setPulseOffTime(unsigned long pulseOffTimeInput)
 {
-  unsigned long pulseOffTime = pulseOffTimeInput; 
+  pulseOffTime=verifyValue(pulseOffTimeInput, MIN_PULSE_OFF_TIME_S*1000, MAX_PULSE_OFF_TIME_S*1000, DEFAULT_PULSE_OFF_TIME_S*1000);
 
 }
 
+void setDesiredCurrent(float desiredCurrentInput)
+{
+      desiredCurrent = verifyValue(desiredCurrentInput,MIN_CURRENT,MAX_CURRENT,DEFAULT_CURRENT); 
+
+}
+
+
+template <typename T1, typename T2, typename T3, typename T4>
+auto verifyValue(T1 value, T2 min, T3 max, T4 defaultValue) -> decltype(value + min + max + defaultValue)
+{
+    using ReturnType = decltype(value + min + max + defaultValue);
+    if (value >= min && value <= max)
+    {
+        return static_cast<ReturnType>(value);
+    }
+    else
+    {
+        Serial.println("Value out of bound, fallingback to default");
+        return static_cast<ReturnType>(defaultValue);
+    }
+}
