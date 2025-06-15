@@ -85,12 +85,13 @@ void operateCircuit(enum CIRCUITMODE CircuitMode)
     if (CircuitMode == CIRCUITOFF)
     {
       handleOff();
+      return;
     }
     previousMillis += Gridtime;
 
-     VoltageCurrentReading voltageCurrentS=getVoltageAndCurrent(CircuitMode);
-     measuredVoltage=voltageCurrentS.voltage;
-     measuredCurrent=voltageCurrentS.current;
+    VoltageCurrentReading voltageCurrentS = getVoltageAndCurrent(CircuitMode);
+    measuredVoltage = voltageCurrentS.voltage;
+    measuredCurrent = voltageCurrentS.current;
 
     // Check pulse state
     if (updatePulseState(currentMillis))
@@ -109,6 +110,7 @@ void operateCircuit(enum CIRCUITMODE CircuitMode)
         digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, HIGH); // Relay ON during discharging
       }
     }
+    digitalWrite(SAFETY_RELAY_PIN, HIGH); // Relay ON during discharging
   }
 }
 
@@ -138,6 +140,8 @@ void handleDischarging()
 void handleOff()
 {
   // TODO handle off
+  digitalWrite(SAFETY_RELAY_PIN, LOW); // Relay ON during discharging
+  Serial.println("Circuit off- cuttting safety relay");
 }
 
 void updateControlAndPWM(float measuredVoltage, float voltage_diff)
