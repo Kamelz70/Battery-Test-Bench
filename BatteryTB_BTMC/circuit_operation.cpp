@@ -1,8 +1,9 @@
-#include "circuit_operation.h"
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
+#include "circuit_operation.h"
 #include "circuit_ads.h"
 #include "circuit_config.h"
+#include "circuit_measurements.h"
 Adafruit_ADS1115 ads;
 
 /////////// Helper Functions
@@ -10,7 +11,6 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff);
 void handleCharging();
 void handleDischarging();
 void handleOff();
-void readVoltageAndCurrent();
 bool updatePulseState(unsigned long currentMillis);
 /////////////////
 
@@ -88,7 +88,9 @@ void operateCircuit(enum CIRCUITMODE CircuitMode)
     }
     previousMillis += Gridtime;
 
-    readVoltageAndCurrent();
+     VoltageCurrentReading voltageCurrentS=getVoltageAndCurrent(CircuitMode);
+     measuredVoltage=voltageCurrentS.voltage;
+     measuredCurrent=voltageCurrentS.current;
 
     // Check pulse state
     if (updatePulseState(currentMillis))
@@ -208,27 +210,6 @@ bool updatePulseState(unsigned long currentMillis)
   }
 
   return pulseState;
-}
-
-void readVoltageAndCurrent()
-{
-  // Read battery voltage from A0 (after voltage divider)
-  int16_t adc_volt = ads.readADC_SingleEnded(0);
-  measuredVoltage = VOLTAGE_DIVIDER_FACTOR * adc_volt * (4.096 / 32768.0);
-
-  // Read differential voltage across shunt (A1 - A3), also through voltage divider
-  int16_t adc_diff = ads.readADC_Differential_1_3();
-  voltage_diff = adc_diff * (4.096 / 32768.0);
-
-  // Calculate current using 0.5 ohm shunt
-  if (flgDisChrg < 0.5)
-  {
-    measuredCurrent = -(voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
-  }
-  else
-  {
-    measuredCurrent = (voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
-  }
 }
 //
 float getCircuitVoltage()
