@@ -42,7 +42,7 @@ float iGain_error;
 float error;
 float y = 0;
 float Del_V = 0;
-float derfacPwmAntiWiUp=0;
+float derfacPwmAntiWiUp = 0;
 float facPwmDeltaLim;
 float facPwmLim;
 float measuredVoltage;
@@ -50,22 +50,23 @@ float measuredCurrent;
 float voltage_diff;
 
 // for pulse discharging
-unsigned long pulseOnTime = 100000000;//120000;  // milliseconds ON
-unsigned long pulseOffTime =0; // 60000;  // milliseconds OFF
-bool pulseState = true;            // true = ON phase, false = OFF phase
+unsigned long pulseOnTime = 100000000; // 120000;  // milliseconds ON
+unsigned long pulseOffTime = 0;        // 60000;  // milliseconds OFF
+bool pulseState = true;                // true = ON phase, false = OFF phase
 unsigned long pulsePreviousMillis = 0;
 //******************
-// done
+
 void circuitOperationSetup()
 {
   pinMode(PWM_PIN_CHARGE, OUTPUT);
-  pinMode(RELAY_PIN, OUTPUT); // relay output
+  pinMode(SAFETY_RELAY_PIN, OUTPUT);
+  pinMode(CHARGE_DISCHARGE_RELAY_PIN, OUTPUT); // relay output
   Serial.begin(115200);
   ledcAttachPin(PWM_PIN_CHARGE, 1); // Channel 1 for PWM charging
-  ledcSetup(1, 20000, 10);  // 20 kHz, resolution 10-bit
+  ledcSetup(1, 20000, 10);          // 20 kHz, resolution 10-bit
 
   ledcAttachPin(PWM_PIN_DISCHARGE, 0); // Channel 0 for PWM discharging
-  ledcSetup(0, 20000, 10);          // 20 kHz, resolution 10-bit
+  ledcSetup(0, 20000, 10);             // 20 kHz, resolution 10-bit
 
   if (!ads.begin())
   {
@@ -75,12 +76,16 @@ void circuitOperationSetup()
   }
   ads.setGain(GAIN_ONE); // ±4.096V range
 }
-// done
+
 void operateCircuit(enum CIRCUITMODE CircuitMode)
 {
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= Gridtime)
   {
+    if (CircuitMode == CIRCUITOFF)
+    {
+      handleOff();
+    }
     previousMillis += Gridtime;
 
     readVoltageAndCurrent();
@@ -89,23 +94,22 @@ void operateCircuit(enum CIRCUITMODE CircuitMode)
     if (updatePulseState(currentMillis))
     {
       // Only run this if in ON phase
-      if (flgDisChrg < 0.5)
+      if (CircuitMode == CIRCUITCHARGING)
       {
 
         handleCharging();
-        digitalWrite(RELAY_PIN, LOW); // Relay OFF during charging
+        digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay OFF during charging
       }
-      else
+      else if (CircuitMode == CIRCUITDISCHARGING)
       {
 
         handleDischarging();
-        digitalWrite(RELAY_PIN, HIGH); // Relay ON during discharging
+        digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, HIGH); // Relay ON during discharging
       }
     }
   }
 }
 
-// done
 void handleCharging()
 {
   voltsShuntAbs = -1 * voltage_diff;      // corrected
@@ -117,7 +121,7 @@ void handleCharging()
 
   updateControlAndPWM(measuredVoltage, voltage_diff);
 }
-// done
+
 void handleDischarging()
 {
   voltsShuntAbs = voltage_diff; // this function is working perfectly
@@ -129,9 +133,12 @@ void handleDischarging()
 
   updateControlAndPWM(measuredVoltage, voltage_diff);
 }
+void handleOff()
+{
+  // TODO handle off
+}
 
-// done
-void updateControlAndPWM(float measuredVoltage, float voltage_diff) 
+void updateControlAndPWM(float measuredVoltage, float voltage_diff)
 {
 
   // y += (1 / T_LowPass) * (Gridtime / 1000.0) * (Del_V - y);
@@ -184,7 +191,7 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff)
   Serial.print(" |    ");
   Serial.println(voltage_diff, 3);
 }
-// done
+
 bool updatePulseState(unsigned long currentMillis)
 {
   if (pulseState && (currentMillis - pulsePreviousMillis >= pulseOnTime))
@@ -224,10 +231,6 @@ void readVoltageAndCurrent()
   }
 }
 //
-void handleOff()
-{
-  Serial.println("Unhandled Off");
-}
 float getCircuitVoltage()
 {
   return measuredVoltage;
