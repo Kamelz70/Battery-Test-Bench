@@ -1,5 +1,9 @@
 #ifndef CIRCUIT_CONFIG_H
 #define CIRCUIT_CONFIG_H
+///Connected Pins
+#define RELAY_PIN 12
+#define PWM_PIN_CHARGE 9
+#define PWM_PIN_DISCHARGE 8
 //CIRCUIT SAFETY
 #define MAX_VOLTAGE 4.2
 #define MIN_VOLTAGE 3.0

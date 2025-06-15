@@ -14,9 +14,6 @@ void readVoltageAndCurrent();
 bool updatePulseState(unsigned long currentMillis);
 /////////////////
 
-const int relayPin = 12; // Pin connected to the relay
-const int pwmPin = 9;
-const int pwmpin_dischrg = 8;
 // === Control Parameters ===
 bool flgDisChrg = 1; // 1 = Discharge, 0 = Charge
 float currMaxChrgDisChrg = 1;
@@ -61,13 +58,13 @@ unsigned long pulsePreviousMillis = 0;
 // done
 void circuitOperationSetup()
 {
-  pinMode(pwmPin, OUTPUT);
-  pinMode(relayPin, OUTPUT); // relay output
+  pinMode(PWM_PIN_CHARGE, OUTPUT);
+  pinMode(RELAY_PIN, OUTPUT); // relay output
   Serial.begin(115200);
-  ledcAttachPin(pwmPin, 1); // Channel 1 for PWM charging
+  ledcAttachPin(PWM_PIN_CHARGE, 1); // Channel 1 for PWM charging
   ledcSetup(1, 20000, 10);  // 20 kHz, resolution 10-bit
 
-  ledcAttachPin(pwmpin_dischrg, 0); // Channel 0 for PWM discharging
+  ledcAttachPin(PWM_PIN_DISCHARGE, 0); // Channel 0 for PWM discharging
   ledcSetup(0, 20000, 10);          // 20 kHz, resolution 10-bit
 
   if (!ads.begin())
@@ -96,13 +93,13 @@ void operateCircuit(enum CIRCUITMODE CircuitMode)
       {
 
         handleCharging();
-        digitalWrite(relayPin, LOW); // Relay OFF during charging
+        digitalWrite(RELAY_PIN, LOW); // Relay OFF during charging
       }
       else
       {
 
         handleDischarging();
-        digitalWrite(relayPin, HIGH); // Relay ON during discharging
+        digitalWrite(RELAY_PIN, HIGH); // Relay ON during discharging
       }
     }
   }
