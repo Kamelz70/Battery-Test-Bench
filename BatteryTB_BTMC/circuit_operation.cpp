@@ -11,8 +11,9 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff);
 void handleCharging();
 void handleDischarging();
 void handleOff();
-bool updatePulseState(unsigned long currentMillis);
-
+bool updatePulseState(unsigned long currentMillis,enum CIRCUITMODE CircuitMode);
+template <typename T1, typename T2, typename T3, typename T4>
+auto verifyValue(T1 value, T2 min, T3 max, T4 defaultValue) -> decltype(value + min + max + defaultValue);
 /////////////////
 
 // === Control Parameters ===
@@ -95,7 +96,7 @@ void operateCircuit(enum CIRCUITMODE CircuitMode)
     measuredCurrent = voltageCurrentS.current;
 
     // Check pulse state
-    if (updatePulseState(currentMillis))
+    if (updatePulseState(currentMillis,CircuitMode))
     {
       // Only run this if in ON phase
       if (CircuitMode == CIRCUITCHARGING)

@@ -24,23 +24,42 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   // setup serial
   Serial.begin(115200);
-  // Serial.begin(9600); // HC-05 default baud rate
   Serial.println("Serial Started");
+  // circuitOperationSetup();
   setupBLE(&onBLERecieved, &onBLEConnect);
-  circuitOperationSetup();
+  // circuitOperationSetup();
 }
 
 void loop()
 {
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  delay(100);
-  unsigned long currentMillis = millis();
-  if ((currentMillis - lastBLETriggerMillis >= BLE_SEND_INTERVAL) && isBLEConnected())
+  delay(50);
+  // VoltageCurrentReading VoltageCurrentS = getVoltageAndCurrent(getCircuitMode());
+  VoltageCurrentReading VoltageCurrentS;
+  //only for testing
+  VoltageCurrentS.voltage=3;
+  VoltageCurrentS.current=3;
+  // last is temp.
+  CIRCUITSAFETYCODE safetyCode = checkCircuitSafety(VoltageCurrentS.current, VoltageCurrentS.voltage, 30.3);
+  if (safetyCode == ALL_SAFE)
   {
-    lastBLETriggerMillis = currentMillis;
-    String measurementsString = getRealtimeDataString(getCircuitMode());
-    sendBLEString(measurementsString);
+    unsigned long currentMillis = millis();
+    if ((currentMillis - lastBLETriggerMillis >= BLE_SEND_INTERVAL) && isBLEConnected())
+    {
+      lastBLETriggerMillis = currentMillis;
+      String measurementsString = getRealtimeDataString(getCircuitMode());
+      sendBLEString(measurementsString);
+    }
   }
-
+  else
+  {
+    setCircuitMode(CIRCUITOFF);
+    // operateCircuit(getCircuitMode());
+    String ErrorMsg = getSafetyCodeString(safetyCode);
+    sendBLEString(ErrorMsg);
+    Serial.print("UNSAFE SYSTEM STATE, KAPPUTTT!!!!");
+    while (1)
+      ;
+  }
   // operateCircuit(CircuitMode);
 }

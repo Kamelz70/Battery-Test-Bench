@@ -18,6 +18,22 @@ CIRCUITSAFETYCODE checkCircuitSafety(float current, float voltage, float tempera
   }
   return ALL_SAFE;
 }
+String getSafetyCodeString(CIRCUITSAFETYCODE safetyCode)
+{
+switch (safetyCode)
+  {
+    case ALL_SAFE:
+      return "All safety conditions are within range";
+    case TEMPERATURE_OUT_OF_RANGE:
+      return "Error: Temperature out of range";
+    case CURRENT_OUT_OF_RANGE:
+      return "Error: Current out of range";
+    case VOLTAGE_OUT_OF_RANGE:
+      return "Error: Voltage out of range";
+    default:
+      return "Unknown safety status";
+  }
+}
 
 bool isTemperatureSafe(float temperature)
 {
@@ -57,17 +73,3 @@ bool isVoltageSafe(float voltage)
   return true;
 }
 
-String getBoundariesString()
-{
-  return String(MAX_VOLTAGE, 2) + ","
-  +String(MIN_VOLTAGE, 2) + ","
-  +String(MAX_CURRENT, 2) + ","
-  +String(MIN_CURRENT, 2) + ","
-  +String(MAX_STOPTIME, 2) + ","
-  +String(MIN_STOPTIME, 2) + ","
-  +String(MAX_TEMPERATURE, 2) + ","
-  +String(MIN_TEMPERATURE, 2) + ","
-  +String(DEFAULT_VOLTAGE, 2) + ","
-  +String(DEFAULT_CURRENT, 2);
-
-}

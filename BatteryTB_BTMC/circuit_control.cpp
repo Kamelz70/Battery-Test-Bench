@@ -24,7 +24,7 @@ void parseControlString(String controlString)
     {
         CircuitMode = CIRCUITOFF;
         Serial.println("more than 3 params recieved, switching off");
-         return;
+        return;
     }
     if (controlString[0] == 'c')
     {
@@ -34,22 +34,27 @@ void parseControlString(String controlString)
     {
         CircuitMode = CIRCUITDISCHARGING;
     }
-        Current = splitter.getItemAtIndex(1).toFloat();
-        PulseOnTime = splitter.getItemAtIndex(2).toInt() * 1000;
-        PulseOffTime = splitter.getItemAtIndex(3).toInt() * 1000;
-        setPulseOnTime(PulseOnTime);
-        setPulseOffTime(PulseOffTime);
-        setDesiredCurrent(float desiredCurrentInput);
-        
-        Serial.println("Current:" + String(Current));
-        Serial.println("PulseOnTime:" + String(PulseOnTime));
-        Serial.println("PulseOffTime:" + String(PulseOffTime));
+    Current = splitter.getItemAtIndex(1).toFloat();
+    PulseOnTime = splitter.getItemAtIndex(2).toInt() * 1000;
+    PulseOffTime = splitter.getItemAtIndex(3).toInt() * 1000;
+    setPulseOnTime(PulseOnTime);
+    setPulseOffTime(PulseOffTime);
+    setDesiredCurrent(Current);
+
+    Serial.println("Current:" + String(Current));
+    Serial.println("PulseOnTime:" + String(PulseOnTime));
+    Serial.println("PulseOffTime:" + String(PulseOffTime));
 }
 
-String getCircuitMode()
+CIRCUITMODE getCircuitMode()
 {
-    return String((char)CircuitMode);
+    return CircuitMode;
 }
+void setCircuitMode(enum CIRCUITMODE circuitModeInput)
+{
+    CircuitMode = circuitModeInput;
+}
+
 String getBoundarySettingsString()
 {
     return String(MAX_VOLTAGE, 2) + "," +           // 1

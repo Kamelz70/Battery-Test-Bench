@@ -50,8 +50,20 @@ float getTemperature()
 {
   return 100.1;
 }
-String getRealtimeDataString(String circuitMode)
+String getRealtimeDataString(enum CIRCUITMODE circuitMode)
 {
+  String modeString="o";
+   switch (circuitMode) {
+    case CIRCUITCHARGING:
+      modeString = "c";
+      break;
+    case CIRCUITDISCHARGING:
+      modeString = "d";
+      break;
+    case CIRCUITOFF:
+      modeString = "o";
+      break;
+  }
   // Generate random mock data within ranges
   float voltage = MIN_VOLTAGE + (rand() % (int)((MAX_VOLTAGE - MIN_VOLTAGE) * 100)) / 100.0;
   float current = MIN_CURRENT + (rand() % (int)((MAX_CURRENT - MIN_CURRENT) * 100)) / 100.0;
@@ -64,5 +76,5 @@ String getRealtimeDataString(String circuitMode)
   // return String(voltageCurrent.voltage, 2) + ","
   // + String(voltageCurrent.current, 2) + ","
 
-  return String(voltage, 2) + "," + String(current, 2) + "," + String(temperature, 2) + "," + String(soh, 2) + "," + String(soc, 2) + "," + circuitMode;
+  return String(voltage, 2) + "," + String(current, 2) + "," + String(temperature, 2) + "," + String(soh, 2) + "," + String(soc, 2) + "," + modeString;
 }

@@ -5,6 +5,6 @@
 
 VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode);
 float getTemperature();
-String getRealtimeDataString(String CircuitMode);
+String getRealtimeDataString(enum CIRCUITMODE circuitMode);
 
 #endif

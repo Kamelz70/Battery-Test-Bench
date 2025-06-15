@@ -6,6 +6,6 @@ CIRCUITSAFETYCODE checkCircuitSafety(float current, float voltage, float tempera
 bool isTemperatureSafe(float temperature);
 bool isCurrentSafe(float current);
 bool isVoltageSafe(float voltage);
-String getBoundariesString();
+String getSafetyCodeString(CIRCUITSAFETYCODE safetyCode);
 
 #endif
