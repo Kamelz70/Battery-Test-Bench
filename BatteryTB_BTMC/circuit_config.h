@@ -1,6 +1,13 @@
 #ifndef CIRCUIT_CONFIG_H
 #define CIRCUIT_CONFIG_H
-///////////////////////CIRCUIT SAFETY
+//TODO FIX CONFIRM ALL PINS
+///Connected Pins
+#define CHARGE_DISCHARGE_RELAY_PIN 12
+#define SAFETY_RELAY_PIN 13
+#define PWM_PIN_CHARGE 9
+#define PWM_PIN_DISCHARGE 8
+//CIRCUIT SAFETY
+
 #define MAX_VOLTAGE 4.2
 #define MIN_VOLTAGE 3.0
 #define MAX_CURRENT 5.0 
@@ -26,5 +33,6 @@
 //////////////////////// Your custom BLE UUIDs Paired with your App
 #define SERVICE_UUID "58f4c711-037d-4dd5-8b2c-80a46b3d9ab4"
 #define CHARACTERISTIC_UUID "31c9dd7b-e55d-4e99-8b8a-e7a00857949a"
-
+////////////////////////
+#define VOLTAGE_DIVIDER_FACTOR 2
 #endif

@@ -3,7 +3,7 @@
 #include "custom_types.h"
 #include <Arduino.h> 
 
-VoltageCurrentReading getVoltageAndCurrent();
+VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode);
 float getTemperature();
 String getRealtimeDataString(String CircuitMode);
 
