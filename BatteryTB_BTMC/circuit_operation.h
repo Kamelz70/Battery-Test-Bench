@@ -11,5 +11,6 @@ void circuitOperationSetup();
 void operateCircuit(enum CIRCUITMODE CircuitMode);
 float getCircuitVoltage();
 float getCircuitCurrent();
-
+void setPulseOnTime(unsigned long pulseOnTimeInput);
+void setPulseOffTime(unsigned long pulseOffTimeInput);
 #endif

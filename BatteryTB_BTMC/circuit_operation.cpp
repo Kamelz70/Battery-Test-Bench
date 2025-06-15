@@ -12,6 +12,7 @@ void handleCharging();
 void handleDischarging();
 void handleOff();
 bool updatePulseState(unsigned long currentMillis);
+
 /////////////////
 
 // === Control Parameters ===
@@ -198,22 +199,32 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff)
   Serial.println(voltage_diff, 3);
 }
 
-bool updatePulseState(unsigned long currentMillis)
+bool updatePulseState(unsigned long currentMillis,enum CIRCUITMODE CircuitMode)
 {
-  if (pulseState && (currentMillis - pulsePreviousMillis >= pulseOnTime))
+  if(CircuitMode==CIRCUITCHARGING)
   {
-    pulseState = false; // Switch to OFF
-    pulsePreviousMillis = currentMillis;
-    ledcWrite(1, 0);
-    int pwmValue = 0; // Turn off PWM
-  }
-  else if (!pulseState && (currentMillis - pulsePreviousMillis >= pulseOffTime))
-  {
-    pulseState = true; // Switch to ON
-    pulsePreviousMillis = currentMillis;
-  }
+    if (pulseState && (currentMillis - pulsePreviousMillis >= pulseOnTime))
+    {
+      pulseState = false; // Switch to OFF
+      pulsePreviousMillis = currentMillis;
+      ledcWrite(1, 0);
+      int pwmValue = 0; // Turn off PWM
+    }
+    else if (!pulseState && (currentMillis - pulsePreviousMillis >= pulseOffTime))
+    {
+      pulseState = true; // Switch to ON
+      pulsePreviousMillis = currentMillis;
+    }
+  
+    return pulseState;
 
-  return pulseState;
+  }
+  else if (CircuitMode==CIRCUITCHARGING)
+  {
+    //TODO implement pulse discharging
+    Serial.println("Pulse Discharging not yet implemented");
+      return pulseState;
+  }
 }
 //
 float getCircuitVoltage()
@@ -224,3 +235,14 @@ float getCircuitCurrent()
 {
   return measuredCurrent;
 }
+void setPulseOnTime(unsigned long pulseOnTimeInput)
+{
+  unsigned long pulseOnTime = pulseOnTimeInput; 
+}
+
+void setPulseOffTime(unsigned long pulseOffTimeInput)
+{
+  unsigned long pulseOffTime = pulseOffTimeInput; 
+
+}
+
