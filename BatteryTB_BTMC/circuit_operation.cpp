@@ -2,10 +2,10 @@
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
 #include "circuit_ads.h"
- Adafruit_ADS1115 ads;
+Adafruit_ADS1115 ads;
 
 /////////// Helper Functions
-void updateControlAndPWM();
+void updateControlAndPWM(float measuredVoltage, float voltage_diff);
 void handleCharging();
 void handleDischarging();
 void handleOff();
@@ -13,11 +13,12 @@ void readVoltageAndCurrent();
 bool updatePulseState(unsigned long currentMillis);
 /////////////////
 
+const int relayPin = 12; // Pin connected to the relay
 const int pwmPin = 9;
-
+const int pwmpin_dischrg = 8;
 // === Control Parameters ===
-bool flgDisChrg = 1;  // 1 = Discharge, 0 = Charge
-float currMaxChrgDisChrg = 2.0;
+bool flgDisChrg = 1; // 1 = Discharge, 0 = Charge
+float currMaxChrgDisChrg = 1;
 float minvoltagedischarg = 2.8;
 float voltsChrgMax = 4.2;
 
@@ -28,10 +29,11 @@ float iGainDicChrg = 0.4;
 float iGainChrg = 0.4;
 float T_LowPass = 1.6;
 float resBat = 0.02;
+int voltage_divider_factor = 2;   // change this factor according to the resistor values.(10k and 10k =2)
 
 // === Time Control ===
 unsigned long previousMillis = 0;
-unsigned long Gridtime = 5;  // ms
+unsigned long Gridtime = 5; // ms
 
 // === Variables ===
 float currDes;
@@ -42,92 +44,103 @@ float facPwmP_2;
 float iGain_error;
 float error;
 float y = 0;
-float x = 0;
-float derfacPwmAntiWiUp;
+float Del_V = 0;
+float derfacPwmAntiWiUp=0;
 float facPwmDeltaLim;
 float facPwmLim;
 float measuredVoltage;
 float measuredCurrent;
+float voltage_diff;
 
 // for pulse discharging
-unsigned long pulseOnTime = 100000;  // milliseconds ON
-unsigned long pulseOffTime = 0;  // milliseconds OFF
-bool pulseStateOn = true;            // true = ON phase, false = OFF phase
+unsigned long pulseOnTime = 100000000;//120000;  // milliseconds ON
+unsigned long pulseOffTime =0; // 60000;  // milliseconds OFF
+bool pulseState = true;            // true = ON phase, false = OFF phase
 unsigned long pulsePreviousMillis = 0;
 //******************
-
-void circuitOperationSetup() {
+// done
+void circuitOperationSetup()
+{
   pinMode(pwmPin, OUTPUT);
+  pinMode(relayPin, OUTPUT); // relay output
+  Serial.begin(115200);
+  ledcAttachPin(pwmPin, 1); // Channel 1 for PWM charging
+  ledcSetup(1, 20000, 10);  // 20 kHz, resolution 10-bit
 
-  ledcAttachPin(pwmPin, PWM_CHANNEL);  // Channel 1 for PWM
-  ledcSetup(1, 20000, 10);             // 20 kHz, resolution 10-bit
+  ledcAttachPin(pwmpin_dischrg, 0); // Channel 0 for PWM discharging
+  ledcSetup(0, 20000, 10);          // 20 kHz, resolution 10-bit
 
-  if (!ads.begin()) {
+  if (!ads.begin())
+  {
     Serial.println("Failed to initialize ADS.");
-    // while (1)
-    //   ;
+    while (1)
+      ;
   }
-  ads.setGain(GAIN_ONE);  // ±4.096V range
+  ads.setGain(GAIN_ONE); // ±4.096V range
 }
-
-void operateCircuit(enum CIRCUITMODE CircuitMode) {
+// done
+void operateCircuit(enum CIRCUITMODE CircuitMode)
+{
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= Gridtime) {
+  if (currentMillis - previousMillis >= Gridtime)
+  {
     previousMillis += Gridtime;
 
     readVoltageAndCurrent();
 
-    switch (CircuitMode) {
-      case CIRCUITCHARGING:
-       if (updatePulseState(currentMillis)) {
-        handleCharging();}
-        break;
-      case CIRCUITDISCHARGING:
-       if (updatePulseState(currentMillis)) {
-        handleDischarging();}
-        break;
-      case CIRCUITOFF:
-        handleOff();
-        break;
+    // Check pulse state
+    if (updatePulseState(currentMillis))
+    {
+      // Only run this if in ON phase
+      if (flgDisChrg < 0.5)
+      {
+
+        handleCharging();
+        digitalWrite(relayPin, LOW); // Relay OFF during charging
+      }
+      else
+      {
+
+        handleDischarging();
+        digitalWrite(relayPin, HIGH); // Relay ON during discharging
+      }
     }
   }
 }
 
-float getCircuitVoltage() {
-  return measuredVoltage;
-}
-float getCircuitCurrent() {
-  return measuredCurrent;
-}
-
-void handleCharging() {
-  voltsShuntAbs = -1 * (measuredCurrent - measuredVoltage);
-  x = voltsChrgMax - 2*measuredCurrent;        // Removed "*2" — not using voltage divider ( have a look here)
-  error = currDes - (voltsShuntAbs / 0.25);  // Assuming 0.25Ω effective shunt resistance ( have a look here)
+// done
+void handleCharging()
+{
+  voltsShuntAbs = -1 * voltage_diff;      // corrected
+  Del_V = voltsChrgMax - measuredVoltage; // corrected
+  error = currDes - 4 * voltsShuntAbs;
 
   facPwmP_1 = pGainChrg * error;
   iGain_error = iGainChrg * error;
 
-  updateControlAndPWM();
+  updateControlAndPWM(measuredVoltage, voltage_diff);
 }
-
-void handleDischarging() {
-  voltsShuntAbs = measuredCurrent - measuredVoltage;
-  x = 2*measuredCurrent - minvoltagedischarg;  // Removed "*2" — not using voltage divider ( have a look here)
-  error = currDes - (voltsShuntAbs / 0.25);  // Assuming 0.25Ω effective shunt resistance ( have a look here)
+// done
+void handleDischarging()
+{
+  voltsShuntAbs = voltage_diff; // this function is working perfectly
+  Del_V = measuredVoltage - minvoltagedischarg;
+  error = -1 * (currDes - 4 * voltsShuntAbs);
 
   facPwmP_1 = pGainDisChrg * error;
   iGain_error = iGainDicChrg * error;
 
-  updateControlAndPWM();
-}
-void handleOff() {
-  Serial.println("Unhandled Off");
+  updateControlAndPWM(measuredVoltage, voltage_diff);
 }
 
-void updateControlAndPWM() {
-  y += (1 / T_LowPass) * (Gridtime / 1000.0) * (x - y);
-  currLimChrgDisChrg = max(0.0f, (1 / resBat) * y);
+// done
+void updateControlAndPWM(float measuredVoltage, float voltage_diff) 
+{
+
+  // y += (1 / T_LowPass) * (Gridtime / 1000.0) * (Del_V - y);
+  // currLimChrgDisChrg = max(0.0f, (1 / resBat) * y);
+  y = Del_V * 10;
+  currLimChrgDisChrg = max(-0.1f, y);
   currDes = min(currMaxChrgDisChrg, currLimChrgDisChrg);
 
   facPwmP_2 += (Gridtime / 1000.0) * (iGain_error - derfacPwmAntiWiUp);
@@ -135,40 +148,94 @@ void updateControlAndPWM() {
   facPwmDeltaLim = (facPwmP_1 + facPwmP_2) - facPwmLim;
   facPwmLim = constrain(facPwmP_1 + facPwmP_2, 0.0f, 1.0f);
 
-  int pwmValue = constrain((int)(facPwmLim * 1023.0), 0, 1023.0);
-  ledcWrite(PWM_CHANNEL, pwmValue);
+  int pwmValue = constrain((int)(facPwmLim * 1023.0), 0, 1023);
 
-  Serial.print("Current: ");
-  Serial.print(measuredCurrent, 3);
-  Serial.print(" A | Voltage: ");
+  if (flgDisChrg < 0.5)
+  {
+    ledcWrite(1, pwmValue);
+  }
+
+  else
+  {
+    ledcWrite(0, pwmValue);
+  }
+
+  // First line: header
+  Serial.println("Voltage | PWM | Measured Current | facPwmLim | Error | currDes | currLimChrgDisChrg | facPwmP_1 | y");
+
+  // Second line: all values on one line
   Serial.print(measuredVoltage, 3);
-  Serial.print(" V | PWM: ");
-  Serial.println(pwmValue);
+  Serial.print(" | ");
+  Serial.print(pwmValue);
+  Serial.print("     |    ");
+  Serial.print(measuredCurrent, 3);
+  Serial.print("   |    ");
+  Serial.print(facPwmLim, 3);
+  Serial.print("    |    ");
+  Serial.print(error, 3);
+  Serial.print("   |   ");
+  Serial.print(currDes, 3);
+  Serial.print(" |    ");
+  Serial.print(currLimChrgDisChrg, 3);
+  Serial.print(" |    ");
+  Serial.print(facPwmP_1, 3);
+  Serial.print("   |    ");
+  Serial.print(Del_V, 3);
+  Serial.print(" |    ");
+  Serial.print(y, 3); // Only use println here to end the full line
+  Serial.print(voltage_diff, 3);
+  Serial.print(" |    ");
+  Serial.println(voltage_diff, 3);
 }
-bool updatePulseState(unsigned long currentMillis) {
-  if (pulseStateOn && (currentMillis - pulsePreviousMillis >= pulseOnTime)) {
-    pulseStateOn = false;                      // Switch to OFF
+// done
+bool updatePulseState(unsigned long currentMillis)
+{
+  if (pulseState && (currentMillis - pulsePreviousMillis >= pulseOnTime))
+  {
+    pulseState = false; // Switch to OFF
     pulsePreviousMillis = currentMillis;
-    ledcWrite(1, 0);                         // Turn off PWM
+    ledcWrite(1, 0);
+    int pwmValue = 0; // Turn off PWM
   }
-  else if (!pulseStateOn && (currentMillis - pulsePreviousMillis >= pulseOffTime)) {
-    pulseStateOn = true;                       // Switch to ON
+  else if (!pulseState && (currentMillis - pulsePreviousMillis >= pulseOffTime))
+  {
+    pulseState = true; // Switch to ON
     pulsePreviousMillis = currentMillis;
   }
 
-  return pulseStateOn;
+  return pulseState;
 }
 
-void readVoltageAndCurrent() {
+void readVoltageAndCurrent()
+{
   // Read battery voltage from A0 (after voltage divider)
   int16_t adc_volt = ads.readADC_SingleEnded(0);
-  measuredVoltage = adc_volt * (4.096 / 32767.0);
+  measuredVoltage = voltage_divider_factor * adc_volt * (4.096 / 32768.0);
 
   // Read differential voltage across shunt (A1 - A3), also through voltage divider
   int16_t adc_diff = ads.readADC_Differential_1_3();
-  float voltage_diff = adc_diff * (4.096 / 32768.0);
+  voltage_diff = adc_diff * (4.096 / 32768.0);
 
   // Calculate current using 0.5 ohm shunt
-  measuredCurrent = voltage_diff / 0.5;
+  if (flgDisChrg < 0.5)
+  {
+    measuredCurrent = -(voltage_diff / 0.5) * voltage_divider_factor;
+  }
+  else
+  {
+    measuredCurrent = (voltage_diff / 0.5) * voltage_divider_factor;
+  }
 }
 
+void handleOff()
+{
+  Serial.println("Unhandled Off");
+}
+float getCircuitVoltage()
+{
+  return measuredVoltage;
+}
+float getCircuitCurrent()
+{
+  return measuredCurrent;
+}
