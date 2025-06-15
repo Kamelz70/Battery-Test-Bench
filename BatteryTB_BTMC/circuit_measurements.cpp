@@ -15,29 +15,44 @@
 #define MIN_SOC 0.0
 #define MAX_SOC 100.0
 
-VoltageCurrentReading getVoltageAndCurrent()
+
+VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode)
 {
+  float voltage_diff;
   VoltageCurrentReading result;
+  if (CircuitMode == CIRCUITOFF)
+  {
+    result.voltage = 0;
+    result.current = 0;
+    return result;
+  }
   // Read battery voltage from A0 (after voltage divider)
   int16_t adc_volt = ads.readADC_SingleEnded(0);
-  result.voltage = adc_volt * (4.096 / 32767.0);
+  result.voltage = VOLTAGE_DIVIDER_FACTOR * adc_volt * (4.096 / 32768.0);
 
   // Read differential voltage across shunt (A1 - A3), also through voltage divider
   int16_t adc_diff = ads.readADC_Differential_1_3();
-  float voltage_diff = adc_diff * (4.096 / 32768.0);
+  voltage_diff = adc_diff * (4.096 / 32768.0);
 
   // Calculate current using 0.5 ohm shunt
-  result.current = voltage_diff / 0.5;
-
+  if (CircuitMode == CIRCUITCHARGING)
+  {
+    result.current = -(voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
+  }
+  else if (CircuitMode == CIRCUITDISCHARGING)
+  {
+    result.current = (voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
+  }
   return result;
 }
 
-float getTemperature() {
+float getTemperature()
+{
   return 100.1;
 }
 String getRealtimeDataString(String circuitMode)
 {
-    // Generate random mock data within ranges
+  // Generate random mock data within ranges
   float voltage = MIN_VOLTAGE + (rand() % (int)((MAX_VOLTAGE - MIN_VOLTAGE) * 100)) / 100.0;
   float current = MIN_CURRENT + (rand() % (int)((MAX_CURRENT - MIN_CURRENT) * 100)) / 100.0;
   float temperature = MIN_TEMP + (rand() % (int)((MAX_TEMP - MIN_TEMP) * 100)) / 100.0;
@@ -48,11 +63,6 @@ String getRealtimeDataString(String circuitMode)
 
   // return String(voltageCurrent.voltage, 2) + ","
   // + String(voltageCurrent.current, 2) + ","
-  
-  return String(voltage, 2) + ","
-  + String(current, 2) + ","
-  + String(temperature, 2) + ","
-  + String(soh, 2) + ","
-  + String(soc, 2) + ","
-  + circuitMode;
+
+  return String(voltage, 2) + "," + String(current, 2) + "," + String(temperature, 2) + "," + String(soh, 2) + "," + String(soc, 2) + "," + circuitMode;
 }

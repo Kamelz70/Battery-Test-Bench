@@ -18,5 +18,6 @@
 //////////////////////// Your custom BLE UUIDs Paired with your App
 #define SERVICE_UUID "58f4c711-037d-4dd5-8b2c-80a46b3d9ab4"
 #define CHARACTERISTIC_UUID "31c9dd7b-e55d-4e99-8b8a-e7a00857949a"
-
+////////////////////////
+#define VOLTAGE_DIVIDER_FACTOR 2
 #endif

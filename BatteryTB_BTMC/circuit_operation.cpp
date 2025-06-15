@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
 #include "circuit_ads.h"
+#include "circuit_config.h"
 Adafruit_ADS1115 ads;
 
 /////////// Helper Functions
@@ -29,7 +30,6 @@ float iGainDicChrg = 0.4;
 float iGainChrg = 0.4;
 float T_LowPass = 1.6;
 float resBat = 0.02;
-int voltage_divider_factor = 2;   // change this factor according to the resistor values.(10k and 10k =2)
 
 // === Time Control ===
 unsigned long previousMillis = 0;
@@ -210,7 +210,7 @@ void readVoltageAndCurrent()
 {
   // Read battery voltage from A0 (after voltage divider)
   int16_t adc_volt = ads.readADC_SingleEnded(0);
-  measuredVoltage = voltage_divider_factor * adc_volt * (4.096 / 32768.0);
+  measuredVoltage = VOLTAGE_DIVIDER_FACTOR * adc_volt * (4.096 / 32768.0);
 
   // Read differential voltage across shunt (A1 - A3), also through voltage divider
   int16_t adc_diff = ads.readADC_Differential_1_3();
@@ -219,14 +219,14 @@ void readVoltageAndCurrent()
   // Calculate current using 0.5 ohm shunt
   if (flgDisChrg < 0.5)
   {
-    measuredCurrent = -(voltage_diff / 0.5) * voltage_divider_factor;
+    measuredCurrent = -(voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
   }
   else
   {
-    measuredCurrent = (voltage_diff / 0.5) * voltage_divider_factor;
+    measuredCurrent = (voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
   }
 }
-
+//
 void handleOff()
 {
   Serial.println("Unhandled Off");
