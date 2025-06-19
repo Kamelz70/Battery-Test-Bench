@@ -1,18 +1,18 @@
 #include "circuit_safety.h"
 #include "circuit_config.h"
 
-CIRCUITSAFETYCODE checkCircuitSafety(float current, float voltage, float temperature)
+CIRCUITSAFETYCODE checkCircuitSafety(float current, float voltage, float temperature,enum CIRCUITMODE circuitMode)
 {
 
   if (!isTemperatureSafe(temperature))
   {
     return TEMPERATURE_OUT_OF_RANGE;
   }
-  if (!isCurrentSafe(current))
+  if (!isCurrentSafe(current,circuitMode))
   {
     return CURRENT_OUT_OF_RANGE;
   }
-  if (!isVoltageSafe(voltage))
+  if (!isVoltageSafe(voltage,circuitMode))
   {
     return  VOLTAGE_OUT_OF_RANGE;
   }
@@ -48,25 +48,25 @@ bool isTemperatureSafe(float temperature)
   return true;
 }
 
-bool isCurrentSafe(float current)
+bool isCurrentSafe(float current,enum CIRCUITMODE circuitMode)
 {
   if (current > MAX_CURRENT)
   {
     return false;
   }
-  if (current < MIN_CURRENT)
+  if (current < MIN_CURRENT&&circuitMode!=CIRCUITOFF)
   {
     return false;
   }
   return true;
 }
-bool isVoltageSafe(float voltage)
+bool isVoltageSafe(float voltage,enum CIRCUITMODE circuitMode)
 {
   if (voltage > MAX_VOLTAGE)
   {
     return false;
   }
-  if (voltage < MIN_VOLTAGE)
+  if (voltage < MIN_VOLTAGE&&circuitMode!=CIRCUITOFF)
   {
     return false;
   }
