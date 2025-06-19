@@ -65,16 +65,14 @@ String getRealtimeDataString(enum CIRCUITMODE circuitMode)
       break;
   }
   // Generate random mock data within ranges
-  float voltage = MIN_VOLTAGE + (rand() % (int)((MAX_VOLTAGE - MIN_VOLTAGE) * 100)) / 100.0;
-  float current = MIN_CURRENT + (rand() % (int)((MAX_CURRENT - MIN_CURRENT) * 100)) / 100.0;
+  // float voltage = MIN_VOLTAGE + (rand() % (int)((MAX_VOLTAGE - MIN_VOLTAGE) * 100)) / 100.0;
+  // float current = MIN_CURRENT + (rand() % (int)((MAX_CURRENT - MIN_CURRENT) * 100)) / 100.0;
+  VoltageCurrentReading VoltageCurrentS = getVoltageAndCurrent(circuitMode);
+  float current = VoltageCurrentS.current;
+  float voltage = VoltageCurrentS.voltage;
   float temperature = MIN_TEMP + (rand() % (int)((MAX_TEMP - MIN_TEMP) * 100)) / 100.0;
   float soh = MIN_SOH + (rand() % (int)((MAX_SOH - MIN_SOH) * 100)) / 100.0;
   float soc = MIN_SOC + (rand() % (int)((MAX_SOC - MIN_SOC) * 100)) / 100.0;
-
-  // VoltageCurrentReading voltageCurrent=getVoltageAndCurrent();
-
-  // return String(voltageCurrent.voltage, 2) + ","
-  // + String(voltageCurrent.current, 2) + ","
 
   return String(voltage, 2) + "," + String(current, 2) + "," + String(temperature, 2) + "," + String(soh, 2) + "," + String(soc, 2) + "," + modeString;
 }
