@@ -16,7 +16,6 @@
 #define MAX_SOC 100.0
 
 float savedTemperature = 0;
-
 void measurementSetup()
 {
   // initialize comm with other arduino

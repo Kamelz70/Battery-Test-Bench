@@ -28,6 +28,8 @@
 #define DEFAULT_PULSE_ON_TIME_S 10
 #define DEFAULT_PULSE_OFF_TIME_S 10
 
+//////
+#define SERIAL1_TIMEOUT 5000
 //BLUETOOTH PARAMS
 //////////////////////// Your custom BLE UUIDs Paired with your App
 #define SERVICE_UUID "58f4c711-037d-4dd5-8b2c-80a46b3d9ab4"

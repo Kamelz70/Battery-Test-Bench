@@ -4,9 +4,10 @@
 #include "circuit_measurements.h"
 #include "custom_types.h"
 #include "circuit_safety.h"
+#include "circuit_config.h"
 #define BLE_SEND_INTERVAL 1000
 unsigned long lastBLETriggerMillis = 0;
-
+unsigned long lastSerial1ActivityMillis = 0;
 /////////////////////////////////////////////////////////callBack functions to be sent to setup ble
 void onBLERecieved(String recievedString)
 {
@@ -34,13 +35,22 @@ void loop()
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   VoltageCurrentReading VoltageCurrentS = getVoltageAndCurrent(getCircuitMode());
   float Temperature = getSavedTemperature();
-  CIRCUITMODE circuitMode= getCircuitMode();
+  CIRCUITMODE circuitMode = getCircuitMode();
   if (Serial1.available())
   {
+    lastSerial1ActivityMillis = millis();
     updateTemperature();
   }
+  else
+  {
+    if (millis() - lastSerial1ActivityMillis > SERIAL1_TIMEOUT)
+    {
+      setCircuitMode(CIRCUITOFF);
+      sendBLEString("Normal NANO not connected, circuit turning off");
+    }
+  }
   // last is temp.
-  CIRCUITSAFETYCODE safetyCode = checkCircuitSafety(VoltageCurrentS.current, VoltageCurrentS.voltage,Temperature,circuitMode);
+  CIRCUITSAFETYCODE safetyCode = checkCircuitSafety(VoltageCurrentS.current, VoltageCurrentS.voltage, Temperature, circuitMode);
   // if (1)
   if (safetyCode == ALL_SAFE)
   {
