@@ -19,8 +19,8 @@ void parseControlString(String controlString)
         return;
     }
 
-    StringSplitter splitter(controlString, ',', 3); // max 3 values
-    if (splitter.getItemCount() != 3)
+    StringSplitter splitter(controlString, ',', 4); // max 3 values
+    if (splitter.getItemCount() != 4)
     {
         CircuitMode = CIRCUITOFF;
         Serial.println("more than 3 params recieved, switching off");
@@ -38,16 +38,21 @@ void parseControlString(String controlString)
     PulseOnTime = splitter.getItemAtIndex(2).toInt() * 1000;
     PulseOffTime = splitter.getItemAtIndex(3).toInt() * 1000;
     setPulseOnTime(PulseOnTime);
-    // setPulseOffTime(PulseOffTime); //TODO Fix
+    setPulseOffTime(PulseOffTime);
     setDesiredCurrent(Current);
-        
-    Serial.println("PulseOffTime String:===============================");
-    Serial.println(splitter.getItemAtIndex(3));
-    Serial.println("Recieved PulseOffTime");
+
+    Serial.println("Recieved Settings===============================");
+    Serial.println("Strings===============================");
+    Serial.println("Current String:" + splitter.getItemAtIndex(1));
+    Serial.println("PulseOnTime String:" + splitter.getItemAtIndex(2));
+    Serial.println("PulseOffTime String:" + splitter.getItemAtIndex(3));
+    Serial.println("Parsed Values===============================");
+    Serial.println("Current:");
+    Serial.println(Current);
+    Serial.println("PulseOnTime:");
+    Serial.println(PulseOnTime);
+    Serial.println("PulseOffTime:");
     Serial.println(PulseOffTime);
-    Serial.println("Current:" + String(Current));
-    Serial.println("PulseOnTime:" + String(PulseOnTime));
-    Serial.println("PulseOffTime:" + String(PulseOffTime));
 }
 
 CIRCUITMODE getCircuitMode()
