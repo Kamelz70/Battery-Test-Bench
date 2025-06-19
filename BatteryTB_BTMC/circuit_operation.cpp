@@ -11,15 +11,15 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff);
 void handleCharging();
 void handleDischarging();
 void handleOff();
-bool updatePulseState(unsigned long currentMillis,enum CIRCUITMODE CircuitMode);
+bool updatePulseState(unsigned long currentMillis, enum CIRCUITMODE CircuitModeInput);
 template <typename T1, typename T2, typename T3, typename T4>
 auto verifyValue(T1 value, T2 min, T3 max, T4 defaultValue) -> decltype(value + min + max + defaultValue);
 /////////////////
 
 // === Control Parameters ===
-bool flgDisChrg = 1; // 1 = Discharge, 0 = Charge
+enum CIRCUITMODE CurrentCircuitMode;
 float desiredCurrent = DEFAULT_CURRENT;
-float minvoltagedischarg = 2.8;
+float minvoltagedischarg = 3.0;
 float voltsChrgMax = 4.2;
 
 float T_AntiWiUp = 4;
@@ -63,9 +63,8 @@ void circuitOperationSetup()
   pinMode(PWM_PIN_CHARGE, OUTPUT);
   pinMode(SAFETY_RELAY_PIN, OUTPUT);
   pinMode(CHARGE_DISCHARGE_RELAY_PIN, OUTPUT); // relay output
-  Serial.begin(115200);
-  ledcAttachPin(PWM_PIN_CHARGE, 1); // Channel 1 for PWM charging
-  ledcSetup(1, 20000, 10);          // 20 kHz, resolution 10-bit
+  ledcAttachPin(PWM_PIN_CHARGE, 1);            // Channel 1 for PWM charging
+  ledcSetup(1, 20000, 10);                     // 20 kHz, resolution 10-bit
 
   ledcAttachPin(PWM_PIN_DISCHARGE, 0); // Channel 0 for PWM discharging
   ledcSetup(0, 20000, 10);             // 20 kHz, resolution 10-bit
@@ -79,37 +78,39 @@ void circuitOperationSetup()
   ads.setGain(GAIN_ONE); // ±4.096V range
 }
 
-void operateCircuit(enum CIRCUITMODE CircuitMode)
+void operateCircuit(enum CIRCUITMODE CircuitModeInput)
 {
+  CurrentCircuitMode = CircuitModeInput;
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= Gridtime)
+  // if (currentMillis - previousMillis >= Gridtime)
+
+  if (1)
   {
-    if (CircuitMode == CIRCUITOFF)
+
+    if (CurrentCircuitMode == CIRCUITOFF)
     {
       handleOff();
       return;
     }
     previousMillis += Gridtime;
 
-    VoltageCurrentReading voltageCurrentS = getVoltageAndCurrent(CircuitMode);
+    VoltageCurrentReading voltageCurrentS = getVoltageAndCurrent(CurrentCircuitMode);
     measuredVoltage = voltageCurrentS.voltage;
     measuredCurrent = voltageCurrentS.current;
 
     // Check pulse state
-    if (updatePulseState(currentMillis,CircuitMode))
+    // if (updatePulseState(currentMillis, CurrentCircuitMode))
+    if (1)
     {
       // Only run this if in ON phase
-      if (CircuitMode == CIRCUITCHARGING)
+      if (CurrentCircuitMode == CIRCUITCHARGING)
       {
 
         handleCharging();
-        digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay OFF during charging
       }
-      else if (CircuitMode == CIRCUITDISCHARGING)
+      else if (CurrentCircuitMode == CIRCUITDISCHARGING)
       {
-
         handleDischarging();
-        digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, HIGH); // Relay ON during discharging
       }
     }
     digitalWrite(SAFETY_RELAY_PIN, HIGH); // Relay ON during discharging
@@ -118,8 +119,9 @@ void operateCircuit(enum CIRCUITMODE CircuitMode)
 
 void handleCharging()
 {
-  voltsShuntAbs = -1 * voltage_diff;      // corrected
-  Del_V = voltsChrgMax - measuredVoltage; // corrected
+  digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay OFF during charging
+  voltsShuntAbs = -1 * voltage_diff;             // corrected
+  Del_V = voltsChrgMax - measuredVoltage;        // corrected
   error = currDes - 4 * voltsShuntAbs;
 
   facPwmP_1 = pGainChrg * error;
@@ -130,6 +132,8 @@ void handleCharging()
 
 void handleDischarging()
 {
+  digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, HIGH); // Relay ON during discharging
+
   voltsShuntAbs = voltage_diff; // this function is working perfectly
   Del_V = measuredVoltage - minvoltagedischarg;
   error = -1 * (currDes - 4 * voltsShuntAbs);
@@ -142,8 +146,10 @@ void handleDischarging()
 void handleOff()
 {
   // TODO handle off
+    digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay ON during discharging
   digitalWrite(SAFETY_RELAY_PIN, LOW); // Relay ON during discharging
   Serial.println("Circuit off- cuttting safety relay");
+  updateControlAndPWM(measuredVoltage, voltage_diff);
 }
 
 void updateControlAndPWM(float measuredVoltage, float voltage_diff)
@@ -161,15 +167,20 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff)
   facPwmLim = constrain(facPwmP_1 + facPwmP_2, 0.0f, 1.0f);
 
   int pwmValue = constrain((int)(facPwmLim * 1023.0), 0, 1023);
-
-  if (flgDisChrg < 0.5)
+  if (CurrentCircuitMode == CIRCUITCHARGING)
   {
     ledcWrite(1, pwmValue);
+    ledcWrite(0, 0);
   }
-
-  else
+  else if (CurrentCircuitMode == CIRCUITDISCHARGING)
   {
     ledcWrite(0, pwmValue);
+    ledcWrite(1, 0);
+  }
+  else if (CurrentCircuitMode == CIRCUITOFF)
+  {
+    ledcWrite(0, 0);
+    ledcWrite(1, 0);
   }
 
   // First line: header
@@ -200,9 +211,9 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff)
   Serial.println(voltage_diff, 3);
 }
 
-bool updatePulseState(unsigned long currentMillis,enum CIRCUITMODE CircuitMode)
+bool updatePulseState(unsigned long currentMillis, enum CIRCUITMODE CurrentCircuitMode)
 {
-  if(CircuitMode==CIRCUITCHARGING)
+  if (CurrentCircuitMode == CIRCUITCHARGING)
   {
     if (pulseState && (currentMillis - pulsePreviousMillis >= pulseOnTime))
     {
@@ -216,15 +227,14 @@ bool updatePulseState(unsigned long currentMillis,enum CIRCUITMODE CircuitMode)
       pulseState = true; // Switch to ON
       pulsePreviousMillis = currentMillis;
     }
-  
-    return pulseState;
 
+    return pulseState;
   }
-  else if (CircuitMode==CIRCUITCHARGING)
+  else if (CurrentCircuitMode == CIRCUITCHARGING)
   {
-    //TODO implement pulse discharging
+    // TODO implement pulse discharging
     Serial.println("Pulse Discharging not yet implemented");
-      return pulseState;
+    return pulseState;
   }
 }
 //
@@ -238,33 +248,31 @@ float getCircuitCurrent()
 }
 void setPulseOnTime(unsigned long pulseOnTimeInput)
 {
-  pulseOnTime=verifyValue(pulseOnTimeInput, MIN_PULSE_ON_TIME_S*1000, MAX_PULSE_ON_TIME_S*1000, DEFAULT_PULSE_ON_TIME_S*1000);
+  pulseOnTime = verifyValue(pulseOnTimeInput, MIN_PULSE_ON_TIME_S * 1000, MAX_PULSE_ON_TIME_S * 1000, DEFAULT_PULSE_ON_TIME_S * 1000);
 }
 
 void setPulseOffTime(unsigned long pulseOffTimeInput)
 {
-  pulseOffTime=verifyValue(pulseOffTimeInput, MIN_PULSE_OFF_TIME_S*1000, MAX_PULSE_OFF_TIME_S*1000, DEFAULT_PULSE_OFF_TIME_S*1000);
-
+  pulseOffTime = verifyValue(pulseOffTimeInput, MIN_PULSE_OFF_TIME_S * 1000, MAX_PULSE_OFF_TIME_S * 1000, DEFAULT_PULSE_OFF_TIME_S * 1000);
 }
 
 void setDesiredCurrent(float desiredCurrentInput)
 {
-      desiredCurrent = verifyValue(desiredCurrentInput,MIN_CURRENT,MAX_CURRENT,DEFAULT_CURRENT); 
-
+  // desiredCurrent = verifyValue(desiredCurrentInput, MIN_CURRENT, MAX_CURRENT, DEFAULT_CURRENT); //TODO fix
+  desiredCurrent = DEFAULT_CURRENT;
 }
-
 
 template <typename T1, typename T2, typename T3, typename T4>
 auto verifyValue(T1 value, T2 min, T3 max, T4 defaultValue) -> decltype(value + min + max + defaultValue)
 {
-    using ReturnType = decltype(value + min + max + defaultValue);
-    if (value >= min && value <= max)
-    {
-        return static_cast<ReturnType>(value);
-    }
-    else
-    {
-        Serial.println("Value out of bound, fallingback to default");
-        return static_cast<ReturnType>(defaultValue);
-    }
+  using ReturnType = decltype(value + min + max + defaultValue);
+  if (value >= min && value <= max)
+  {
+    return static_cast<ReturnType>(value);
+  }
+  else
+  {
+    Serial.println("Value out of bound, fallingback to default");
+    return static_cast<ReturnType>(defaultValue);
+  }
 }
