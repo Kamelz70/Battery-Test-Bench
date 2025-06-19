@@ -154,7 +154,6 @@ void handleDischarging()
 }
 void handleOff()
 {
-  // TODO handle off
   ledcWrite(0, 0);
   ledcWrite(1, 0);
   digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay ON during discharging
@@ -262,8 +261,7 @@ void setPulseOffTime(unsigned long pulseOffTimeInput)
 
 void setDesiredCurrent(float desiredCurrentInput)
 {
-  // desiredCurrent = verifyValue(desiredCurrentInput, MIN_CURRENT, MAX_CURRENT, DEFAULT_CURRENT); //TODO fix
-  desiredCurrent = DEFAULT_CURRENT;
+  desiredCurrent = verifyValue(desiredCurrentInput, MIN_CURRENT, MAX_CURRENT, DEFAULT_CURRENT);
 }
 
 template <typename T1, typename T2, typename T3, typename T4>
