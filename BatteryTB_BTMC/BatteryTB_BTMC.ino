@@ -70,8 +70,6 @@ void loop()
     String ErrorMsg = getSafetyCodeString(safetyCode);
     sendBLEString(ErrorMsg);
     Serial.print("UNSAFE SYSTEM STATE, KAPPUTTT!!!!");
-    while (1)
-      ;
   }
   operateCircuit(getCircuitMode());
   i++;

@@ -38,9 +38,13 @@ void parseControlString(String controlString)
     PulseOnTime = splitter.getItemAtIndex(2).toInt() * 1000;
     PulseOffTime = splitter.getItemAtIndex(3).toInt() * 1000;
     setPulseOnTime(PulseOnTime);
-    setPulseOffTime(PulseOffTime);
+    // setPulseOffTime(PulseOffTime); //TODO Fix
     setDesiredCurrent(Current);
-
+        
+    Serial.println("PulseOffTime String:===============================");
+    Serial.println(splitter.getItemAtIndex(3));
+    Serial.println("Recieved PulseOffTime");
+    Serial.println(PulseOffTime);
     Serial.println("Current:" + String(Current));
     Serial.println("PulseOnTime:" + String(PulseOnTime));
     Serial.println("PulseOffTime:" + String(PulseOffTime));

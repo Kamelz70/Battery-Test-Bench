@@ -52,9 +52,9 @@ float measuredCurrent;
 float voltage_diff;
 
 // for pulse discharging
-unsigned long pulseOnTime = 100000000; // 120000;  // milliseconds ON
-unsigned long pulseOffTime = 0;        // 60000;  // milliseconds OFF
-bool pulseState = true;                // true = ON phase, false = OFF phase
+bool pulseState = true;            // true = ON phase, false = OFF phase
+unsigned long pulseOnTime = 5000;  // 120000;  // milliseconds ON
+unsigned long pulseOffTime = 5000; // 60000;  // milliseconds OFF
 unsigned long pulsePreviousMillis = 0;
 //******************
 
@@ -82,9 +82,7 @@ void operateCircuit(enum CIRCUITMODE CircuitModeInput)
 {
   CurrentCircuitMode = CircuitModeInput;
   unsigned long currentMillis = millis();
-  // if (currentMillis - previousMillis >= Gridtime)
-
-  if (1)
+  if (currentMillis - previousMillis >= Gridtime)
   {
 
     if (CurrentCircuitMode == CIRCUITOFF)
@@ -98,9 +96,9 @@ void operateCircuit(enum CIRCUITMODE CircuitModeInput)
     measuredVoltage = voltageCurrentS.voltage;
     measuredCurrent = voltageCurrentS.current;
     voltage_diff = voltageCurrentS.voltage_diff;
-                   // Check pulse state
-                   // if (updatePulseState(currentMillis, CurrentCircuitMode))
-                   if (1)
+    // Check pulse state
+    bool pulsstate = updatePulseState(currentMillis, CurrentCircuitMode);
+    if (pulsstate)
     {
       // Only run this if in ON phase
       if (CurrentCircuitMode == CIRCUITCHARGING)
@@ -113,12 +111,19 @@ void operateCircuit(enum CIRCUITMODE CircuitModeInput)
         handleDischarging();
       }
     }
-    digitalWrite(SAFETY_RELAY_PIN, HIGH); // Relay ON during discharging
+    Serial.println("pulsstate");
+    Serial.println(pulsstate);
+    digitalWrite(SAFETY_RELAY_PIN, HIGH); // Relay ON during discharging/charging
   }
+  // else
+  // {
+  //   handleOff();
+  // }
 }
 
 void handleCharging()
 {
+  ledcWrite(0, 0);
   digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay OFF during charging
   voltsShuntAbs = -1 * voltage_diff;             // corrected
   Del_V = voltsChrgMax - measuredVoltage;        // corrected
@@ -132,6 +137,7 @@ void handleCharging()
 
 void handleDischarging()
 {
+  ledcWrite(1, 0);
   digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, HIGH); // Relay ON during discharging
 
   voltsShuntAbs = voltage_diff; // this function is working perfectly
@@ -146,6 +152,8 @@ void handleDischarging()
 void handleOff()
 {
   // TODO handle off
+  ledcWrite(0, 0);
+  ledcWrite(1, 0);
   digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay ON during discharging
   digitalWrite(SAFETY_RELAY_PIN, LOW);           // Relay ON during discharging
   Serial.println("Circuit off- cuttting safety relay");
@@ -154,9 +162,6 @@ void handleOff()
 
 void updateControlAndPWM(float measuredVoltage, float voltage_diff)
 {
-
-  // y += (1 / T_LowPass) * (Gridtime / 1000.0) * (Del_V - y);
-  // currLimChrgDisChrg = max(0.0f, (1 / resBat) * y);
   y = Del_V * 10;
   currLimChrgDisChrg = max(-0.1f, y);
   currDes = min(desiredCurrent, currLimChrgDisChrg);
@@ -170,17 +175,13 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff)
   if (CurrentCircuitMode == CIRCUITCHARGING)
   {
     ledcWrite(1, pwmValue);
-    ledcWrite(0, 0);
   }
   else if (CurrentCircuitMode == CIRCUITDISCHARGING)
   {
     ledcWrite(0, pwmValue);
-    ledcWrite(1, 0);
   }
   else if (CurrentCircuitMode == CIRCUITOFF)
   {
-    ledcWrite(0, 0);
-    ledcWrite(1, 0);
   }
 
   // First line: header
@@ -215,22 +216,28 @@ bool updatePulseState(unsigned long currentMillis, enum CIRCUITMODE CurrentCircu
       pulseState = false; // Switch to OFF
       pulsePreviousMillis = currentMillis;
       ledcWrite(1, 0);
-      int pwmValue = 0; // Turn off PWM
     }
     else if (!pulseState && (currentMillis - pulsePreviousMillis >= pulseOffTime))
     {
       pulseState = true; // Switch to ON
       pulsePreviousMillis = currentMillis;
     }
-
-    return pulseState;
   }
-  else if (CurrentCircuitMode == CIRCUITCHARGING)
+  else if (CurrentCircuitMode == CIRCUITDISCHARGING)
   {
-    // TODO implement pulse discharging
-    Serial.println("Pulse Discharging not yet implemented");
-    return pulseState;
+ if (pulseState && (currentMillis - pulsePreviousMillis >= pulseOnTime))
+    {
+      pulseState = false; // Switch to OFF
+      pulsePreviousMillis = currentMillis;
+      ledcWrite(0, 1024);
+    }
+    else if (!pulseState && (currentMillis - pulsePreviousMillis >= pulseOffTime))
+    {
+      pulseState = true; // Switch to ON
+      pulsePreviousMillis = currentMillis;
+    }
   }
+  return pulseState;
 }
 //
 float getCircuitVoltage()

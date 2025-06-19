@@ -33,22 +33,15 @@ VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode)
   // Read differential voltage across shunt (A1 - A3), also through voltage divider
   int16_t adc_diff = ads.readADC_Differential_1_3();
   voltage_diff = adc_diff * (4.096 / 32768.0);
-  Serial.println("voltage_diff");
-  Serial.println(voltage_diff);
   result.voltage_diff = voltage_diff;
-
   // Calculate current using 0.5 ohm shunt
   if (CircuitMode == CIRCUITCHARGING)
   {
     result.current = -(voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
-    Serial.println("result.current");
-    Serial.println(result.current);
   }
   else if (CircuitMode == CIRCUITDISCHARGING)
   {
     result.current = (voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
-    Serial.println("result.current");
-    Serial.println(result.current);
   }
   return result;
 }
