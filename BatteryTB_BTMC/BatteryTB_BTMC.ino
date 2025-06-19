@@ -64,6 +64,7 @@ void loop()
   }
   else
   {
+    triggerSafetyRelay();
     setCircuitMode(CIRCUITOFF);
     String ErrorMsg = getSafetyCodeString(safetyCode);
     Serial.print("Boundary Exceeded");

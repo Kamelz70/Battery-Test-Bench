@@ -19,8 +19,8 @@ auto verifyValue(T1 value, T2 min, T3 max, T4 defaultValue) -> decltype(value + 
 // === Control Parameters ===
 enum CIRCUITMODE CurrentCircuitMode;
 float desiredCurrent = DEFAULT_CURRENT;
-float minvoltagedischarg = MIN_VOLTAGE-VOLTAGE_TOLERANCE;
-float voltsChrgMax = MAX_VOLTAGE+VOLTAGE_TOLERANCE;
+float minvoltagedischarg = MIN_VOLTAGE - VOLTAGE_TOLERANCE;
+float voltsChrgMax = MAX_VOLTAGE + VOLTAGE_TOLERANCE;
 
 float T_AntiWiUp = 4;
 float pGainChrg = 0.1;
@@ -75,7 +75,8 @@ void circuitOperationSetup()
     while (1)
       ;
   }
-  ads.setGain(GAIN_ONE); // ±4.096V range
+  ads.setGain(GAIN_ONE);                // ±4.096V range
+  digitalWrite(SAFETY_RELAY_PIN, HIGH); // Relay ON during discharging/charging
 }
 
 void operateCircuit(enum CIRCUITMODE CircuitModeInput)
@@ -113,14 +114,16 @@ void operateCircuit(enum CIRCUITMODE CircuitModeInput)
     }
     Serial.println("pulsstate");
     Serial.println(pulsstate);
-    digitalWrite(SAFETY_RELAY_PIN, HIGH); // Relay ON during discharging/charging
   }
   // else
   // {
   //   handleOff();
   // }
 }
-
+void triggerSafetyRelay()
+{
+  digitalWrite(SAFETY_RELAY_PIN, LOW); // Relay ON during discharging/charging
+}
 void handleCharging()
 {
   ledcWrite(0, 0);
@@ -155,7 +158,6 @@ void handleOff()
   ledcWrite(0, 0);
   ledcWrite(1, 0);
   digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay ON during discharging
-  digitalWrite(SAFETY_RELAY_PIN, LOW);           // Relay ON during discharging
   // Serial.println("Circuit off- cuttting safety relay");
   updateControlAndPWM(measuredVoltage, voltage_diff);
 }
@@ -225,7 +227,7 @@ bool updatePulseState(unsigned long currentMillis, enum CIRCUITMODE CurrentCircu
   }
   else if (CurrentCircuitMode == CIRCUITDISCHARGING)
   {
- if (pulseState && (currentMillis - pulsePreviousMillis >= pulseOnTime))
+    if (pulseState && (currentMillis - pulsePreviousMillis >= pulseOnTime))
     {
       pulseState = false; // Switch to OFF
       pulsePreviousMillis = currentMillis;
