@@ -97,10 +97,10 @@ void operateCircuit(enum CIRCUITMODE CircuitModeInput)
     VoltageCurrentReading voltageCurrentS = getVoltageAndCurrent(CurrentCircuitMode);
     measuredVoltage = voltageCurrentS.voltage;
     measuredCurrent = voltageCurrentS.current;
-
-    // Check pulse state
-    // if (updatePulseState(currentMillis, CurrentCircuitMode))
-    if (1)
+    voltage_diff = voltageCurrentS.voltage_diff;
+                   // Check pulse state
+                   // if (updatePulseState(currentMillis, CurrentCircuitMode))
+                   if (1)
     {
       // Only run this if in ON phase
       if (CurrentCircuitMode == CIRCUITCHARGING)
@@ -146,8 +146,8 @@ void handleDischarging()
 void handleOff()
 {
   // TODO handle off
-    digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay ON during discharging
-  digitalWrite(SAFETY_RELAY_PIN, LOW); // Relay ON during discharging
+  digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay ON during discharging
+  digitalWrite(SAFETY_RELAY_PIN, LOW);           // Relay ON during discharging
   Serial.println("Circuit off- cuttting safety relay");
   updateControlAndPWM(measuredVoltage, voltage_diff);
 }
@@ -184,29 +184,24 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff)
   }
 
   // First line: header
-  Serial.println("Voltage | PWM | Measured Current | facPwmLim | Error | currDes | currLimChrgDisChrg | facPwmP_1 | y");
+  Serial.println("Voltage | PWM | Measured Current | currDes  | Error | facPwmLim | currLimChrgDisChrg | del_v  | voltage diff ");
 
   // Second line: all values on one line
   Serial.print(measuredVoltage, 3);
   Serial.print(" | ");
   Serial.print(pwmValue);
   Serial.print("     |    ");
-  Serial.print(measuredCurrent, 3);
+  Serial.print(4 * voltsShuntAbs, 3);
   Serial.print("   |    ");
-  Serial.print(facPwmLim, 3);
+  Serial.print(currDes, 3);
   Serial.print("    |    ");
   Serial.print(error, 3);
   Serial.print("   |   ");
-  Serial.print(currDes, 3);
+  Serial.print(facPwmLim, 3);
   Serial.print(" |    ");
   Serial.print(currLimChrgDisChrg, 3);
-  Serial.print(" |    ");
-  Serial.print(facPwmP_1, 3);
   Serial.print("   |    ");
   Serial.print(Del_V, 3);
-  Serial.print(" |    ");
-  Serial.print(y, 3); // Only use println here to end the full line
-  Serial.print(voltage_diff, 3);
   Serial.print(" |    ");
   Serial.println(voltage_diff, 3);
 }

@@ -14,6 +14,7 @@ enum CIRCUITSAFETYCODE { VOLTAGE_OUT_OF_RANGE = 401 ,
 struct VoltageCurrentReading {
   float voltage;
   float current;
+  float voltage_diff;
 };
 
 #endif

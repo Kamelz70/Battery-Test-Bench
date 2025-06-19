@@ -15,7 +15,6 @@
 #define MIN_SOC 0.0
 #define MAX_SOC 100.0
 
-
 VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode)
 {
   float voltage_diff;
@@ -28,20 +27,28 @@ VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode)
   }
   // Read battery voltage from A0 (after voltage divider)
   int16_t adc_volt = ads.readADC_SingleEnded(0);
+
   result.voltage = VOLTAGE_DIVIDER_FACTOR * adc_volt * (4.096 / 32768.0);
 
   // Read differential voltage across shunt (A1 - A3), also through voltage divider
   int16_t adc_diff = ads.readADC_Differential_1_3();
   voltage_diff = adc_diff * (4.096 / 32768.0);
+  Serial.println("voltage_diff");
+  Serial.println(voltage_diff);
+  result.voltage_diff = voltage_diff;
 
   // Calculate current using 0.5 ohm shunt
   if (CircuitMode == CIRCUITCHARGING)
   {
     result.current = -(voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
+    Serial.println("result.current");
+    Serial.println(result.current);
   }
   else if (CircuitMode == CIRCUITDISCHARGING)
   {
     result.current = (voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
+    Serial.println("result.current");
+    Serial.println(result.current);
   }
   return result;
 }
@@ -52,17 +59,18 @@ float getTemperature()
 }
 String getRealtimeDataString(enum CIRCUITMODE circuitMode)
 {
-  String modeString="o";
-   switch (circuitMode) {
-    case CIRCUITCHARGING:
-      modeString = "c";
-      break;
-    case CIRCUITDISCHARGING:
-      modeString = "d";
-      break;
-    case CIRCUITOFF:
-      modeString = "o";
-      break;
+  String modeString = "o";
+  switch (circuitMode)
+  {
+  case CIRCUITCHARGING:
+    modeString = "c";
+    break;
+  case CIRCUITDISCHARGING:
+    modeString = "d";
+    break;
+  case CIRCUITOFF:
+    modeString = "o";
+    break;
   }
   // Generate random mock data within ranges
   // float voltage = MIN_VOLTAGE + (rand() % (int)((MAX_VOLTAGE - MIN_VOLTAGE) * 100)) / 100.0;
