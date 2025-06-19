@@ -40,8 +40,8 @@ void loop()
   }
   // last is temp.
   CIRCUITSAFETYCODE safetyCode = checkCircuitSafety(VoltageCurrentS.current, VoltageCurrentS.voltage,Temperature);
-  // if (safetyCode == ALL_SAFE)
-  if (1)
+  // if (1)
+  if (safetyCode == ALL_SAFE)
   {
     unsigned long currentMillis = millis();
     if ((currentMillis - lastBLETriggerMillis >= BLE_SEND_INTERVAL) && isBLEConnected())
@@ -55,8 +55,8 @@ void loop()
   {
     setCircuitMode(CIRCUITOFF);
     String ErrorMsg = getSafetyCodeString(safetyCode);
+    Serial.print("Boundary Exceeded");
     sendBLEString(ErrorMsg);
-    Serial.print("UNSAFE SYSTEM STATE, KAPPUTTT!!!!");
   }
   operateCircuit(getCircuitMode());
 }
