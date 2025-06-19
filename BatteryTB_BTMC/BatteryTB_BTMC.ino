@@ -21,11 +21,10 @@ void onBLEConnect()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup()
 {
-  Serial.begin(115200);
-  delay(100);
+  Serial.begin(9600);
   Serial.println("Serial Started");
   pinMode(LED_BUILTIN, OUTPUT);
-  // setup serial
+  measurementSetup();
   circuitOperationSetup();
   setupBLE(&onBLERecieved, &onBLEConnect);
 }
@@ -33,28 +32,17 @@ void setup()
 void loop()
 {
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  delay(50);
-  int i = 0;
   VoltageCurrentReading VoltageCurrentS = getVoltageAndCurrent(getCircuitMode());
-  if (i == 1)
+  float Temperature = getSavedTemperature();
+  if (Serial1.available())
   {
-    while (1)
-    {
-      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-      delay(50);
-    }
+    updateTemperature();
   }
   // last is temp.
-  CIRCUITSAFETYCODE safetyCode = checkCircuitSafety(VoltageCurrentS.current, VoltageCurrentS.voltage, 30.3);
+  CIRCUITSAFETYCODE safetyCode = checkCircuitSafety(VoltageCurrentS.current, VoltageCurrentS.voltage,Temperature);
   // if (safetyCode == ALL_SAFE)
   if (1)
   {
-    // while(1)
-    // {
-    //      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-    // delay(100);
-
-    // }
     unsigned long currentMillis = millis();
     if ((currentMillis - lastBLETriggerMillis >= BLE_SEND_INTERVAL) && isBLEConnected())
     {
@@ -66,11 +54,9 @@ void loop()
   else
   {
     setCircuitMode(CIRCUITOFF);
-    // operateCircuit(getCircuitMode());
     String ErrorMsg = getSafetyCodeString(safetyCode);
     sendBLEString(ErrorMsg);
     Serial.print("UNSAFE SYSTEM STATE, KAPPUTTT!!!!");
   }
   operateCircuit(getCircuitMode());
-  i++;
 }

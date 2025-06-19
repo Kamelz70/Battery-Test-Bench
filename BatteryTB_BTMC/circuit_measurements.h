@@ -4,7 +4,8 @@
 #include <Arduino.h> 
 
 VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode);
-float getTemperature();
 String getRealtimeDataString(enum CIRCUITMODE circuitMode);
-
+void measurementSetup();
+float getSavedTemperature();
+void updateTemperature();
 #endif

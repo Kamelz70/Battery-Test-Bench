@@ -156,7 +156,7 @@ void handleOff()
   ledcWrite(1, 0);
   digitalWrite(CHARGE_DISCHARGE_RELAY_PIN, LOW); // Relay ON during discharging
   digitalWrite(SAFETY_RELAY_PIN, LOW);           // Relay ON during discharging
-  Serial.println("Circuit off- cuttting safety relay");
+  // Serial.println("Circuit off- cuttting safety relay");
   updateControlAndPWM(measuredVoltage, voltage_diff);
 }
 
@@ -184,27 +184,27 @@ void updateControlAndPWM(float measuredVoltage, float voltage_diff)
   {
   }
 
-  // First line: header
-  Serial.println("Voltage | PWM | Measured Current | currDes  | Error | facPwmLim | currLimChrgDisChrg | del_v  | voltage diff ");
+  // // First line: header
+  // Serial.println("Voltage | PWM | Measured Current | currDes  | Error | facPwmLim | currLimChrgDisChrg | del_v  | voltage diff ");
 
-  // Second line: all values on one line
-  Serial.print(measuredVoltage, 3);
-  Serial.print(" | ");
-  Serial.print(pwmValue);
-  Serial.print("     |    ");
-  Serial.print(4 * voltsShuntAbs, 3);
-  Serial.print("   |    ");
-  Serial.print(currDes, 3);
-  Serial.print("    |    ");
-  Serial.print(error, 3);
-  Serial.print("   |   ");
-  Serial.print(facPwmLim, 3);
-  Serial.print(" |    ");
-  Serial.print(currLimChrgDisChrg, 3);
-  Serial.print("   |    ");
-  Serial.print(Del_V, 3);
-  Serial.print(" |    ");
-  Serial.println(voltage_diff, 3);
+  // // Second line: all values on one line
+  // Serial.print(measuredVoltage, 3);
+  // Serial.print(" | ");
+  // Serial.print(pwmValue);
+  // Serial.print("     |    ");
+  // Serial.print(4 * voltsShuntAbs, 3);
+  // Serial.print("   |    ");
+  // Serial.print(currDes, 3);
+  // Serial.print("    |    ");
+  // Serial.print(error, 3);
+  // Serial.print("   |   ");
+  // Serial.print(facPwmLim, 3);
+  // Serial.print(" |    ");
+  // Serial.print(currLimChrgDisChrg, 3);
+  // Serial.print("   |    ");
+  // Serial.print(Del_V, 3);
+  // Serial.print(" |    ");
+  // Serial.println(voltage_diff, 3);
 }
 
 bool updatePulseState(unsigned long currentMillis, enum CIRCUITMODE CurrentCircuitMode)

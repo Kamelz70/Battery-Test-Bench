@@ -15,6 +15,34 @@
 #define MIN_SOC 0.0
 #define MAX_SOC 100.0
 
+float savedTemperature = 0;
+
+void measurementSetup()
+{
+  // initialize comm with other arduino
+  Serial1.begin(9600, SERIAL_8N1, NANO_SERIAL_RX_PIN, -1);
+  while (1)
+  {
+    Serial.println("Awaiting first reading of temperature");
+    if (Serial1.available())
+    {
+      updateTemperature();
+      break;
+    }
+  }
+}
+void updateTemperature()
+{
+  String temperString = Serial1.readStringUntil('\n');
+  Serial.print("Temperature from Nano: ");
+  Serial.println(temperString);
+  savedTemperature = temperString.toFloat();
+}
+float getSavedTemperature()
+{
+  return savedTemperature;
+}
+
 VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode)
 {
   float voltage_diff;
@@ -46,10 +74,7 @@ VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode)
   return result;
 }
 
-float getTemperature()
-{
-  return 100.1;
-}
+
 String getRealtimeDataString(enum CIRCUITMODE circuitMode)
 {
   String modeString = "o";
@@ -68,10 +93,11 @@ String getRealtimeDataString(enum CIRCUITMODE circuitMode)
   // Generate random mock data within ranges
   // float voltage = MIN_VOLTAGE + (rand() % (int)((MAX_VOLTAGE - MIN_VOLTAGE) * 100)) / 100.0;
   // float current = MIN_CURRENT + (rand() % (int)((MAX_CURRENT - MIN_CURRENT) * 100)) / 100.0;
+  // float temperature = MIN_TEMP + (rand() % (int)((MAX_TEMP - MIN_TEMP) * 100)) / 100.0;
   VoltageCurrentReading VoltageCurrentS = getVoltageAndCurrent(circuitMode);
   float current = VoltageCurrentS.current;
   float voltage = VoltageCurrentS.voltage;
-  float temperature = MIN_TEMP + (rand() % (int)((MAX_TEMP - MIN_TEMP) * 100)) / 100.0;
+  float temperature = getSavedTemperature();
   float soh = MIN_SOH + (rand() % (int)((MAX_SOH - MIN_SOH) * 100)) / 100.0;
   float soc = MIN_SOC + (rand() % (int)((MAX_SOC - MIN_SOC) * 100)) / 100.0;
 
