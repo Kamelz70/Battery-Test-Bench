@@ -34,12 +34,13 @@ void loop()
   digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   VoltageCurrentReading VoltageCurrentS = getVoltageAndCurrent(getCircuitMode());
   float Temperature = getSavedTemperature();
+  CIRCUITMODE circuitMode= getCircuitMode();
   if (Serial1.available())
   {
     updateTemperature();
   }
   // last is temp.
-  CIRCUITSAFETYCODE safetyCode = checkCircuitSafety(VoltageCurrentS.current, VoltageCurrentS.voltage,Temperature);
+  CIRCUITSAFETYCODE safetyCode = checkCircuitSafety(VoltageCurrentS.current, VoltageCurrentS.voltage,Temperature,circuitMode);
   // if (1)
   if (safetyCode == ALL_SAFE)
   {
@@ -47,7 +48,7 @@ void loop()
     if ((currentMillis - lastBLETriggerMillis >= BLE_SEND_INTERVAL) && isBLEConnected())
     {
       lastBLETriggerMillis = currentMillis;
-      String measurementsString = getRealtimeDataString(getCircuitMode());
+      String measurementsString = getRealtimeDataString(circuitMode);
       sendBLEString(measurementsString);
     }
   }

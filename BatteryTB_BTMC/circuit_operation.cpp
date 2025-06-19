@@ -19,8 +19,8 @@ auto verifyValue(T1 value, T2 min, T3 max, T4 defaultValue) -> decltype(value + 
 // === Control Parameters ===
 enum CIRCUITMODE CurrentCircuitMode;
 float desiredCurrent = DEFAULT_CURRENT;
-float minvoltagedischarg = 3.0;
-float voltsChrgMax = 4.2;
+float minvoltagedischarg = MIN_VOLTAGE-VOLTAGE_TOLERANCE;
+float voltsChrgMax = MAX_VOLTAGE+VOLTAGE_TOLERANCE;
 
 float T_AntiWiUp = 4;
 float pGainChrg = 0.1;
