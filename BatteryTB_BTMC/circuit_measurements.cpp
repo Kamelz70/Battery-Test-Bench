@@ -46,12 +46,6 @@ VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode)
 {
   float voltage_diff;
   VoltageCurrentReading result;
-  if (CircuitMode == CIRCUITOFF)
-  {
-    result.voltage = 0;
-    result.current = 0;
-    return result;
-  }
   // Read battery voltage from A0 (after voltage divider)
   int16_t adc_volt = ads.readADC_SingleEnded(0);
 
@@ -66,7 +60,7 @@ VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode)
   {
     result.current = -(voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
   }
-  else if (CircuitMode == CIRCUITDISCHARGING)
+  else if (CircuitMode == CIRCUITDISCHARGING||CircuitMode == CIRCUITOFF)
   {
     result.current = (voltage_diff / 0.5) * VOLTAGE_DIVIDER_FACTOR;
   }

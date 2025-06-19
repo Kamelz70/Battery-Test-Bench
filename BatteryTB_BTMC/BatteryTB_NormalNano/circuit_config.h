@@ -1,0 +1,39 @@
+#ifndef CIRCUIT_CONFIG_H
+#define CIRCUIT_CONFIG_H
+//TODO FIX CONFIRM ALL PINS
+///Connected Pins
+#define NANO_SERIAL_RX_PIN 3
+#define CHARGE_DISCHARGE_RELAY_PIN 12
+#define SAFETY_RELAY_PIN 11
+#define PWM_PIN_CHARGE 9
+#define PWM_PIN_DISCHARGE 8
+//CIRCUIT SAFETY
+
+#define VOLTAGE_TOLERANCE 0.5
+#define MAX_VOLTAGE 4.2
+#define MIN_VOLTAGE 2
+#define MAX_CURRENT 2.5 
+#define MIN_CURRENT -2.5
+#define MAX_TEMPERATURE 30.0
+#define MIN_TEMPERATURE 10.0
+//TIMES IN SECONDS
+#define MAX_PULSE_ON_TIME_S 600
+#define MIN_PULSE_ON_TIME_S 0
+#define MAX_PULSE_OFF_TIME_S 600
+#define MIN_PULSE_OFF_TIME_S 0
+//////////////////////////CIRCUIT DEFAULT PARAMS
+#define DEFAULT_VOLTAGE 3.3
+#define DEFAULT_CURRENT 1.5
+
+#define DEFAULT_PULSE_ON_TIME_S 10
+#define DEFAULT_PULSE_OFF_TIME_S 10
+
+//////
+#define SERIAL1_TIMEOUT 5000
+//BLUETOOTH PARAMS
+//////////////////////// Your custom BLE UUIDs Paired with your App
+#define SERVICE_UUID "58f4c711-037d-4dd5-8b2c-80a46b3d9ab4"
+#define CHARACTERISTIC_UUID "31c9dd7b-e55d-4e99-8b8a-e7a00857949a"
+////////////////////////
+#define VOLTAGE_DIVIDER_FACTOR 2
+#endif
