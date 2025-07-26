@@ -58,7 +58,7 @@ void loop()
     if ((currentMillis - lastBLETriggerMillis >= BLE_SEND_INTERVAL) && isBLEConnected())
     {
       lastBLETriggerMillis = currentMillis;
-      String measurementsString = getRealtimeDataString(circuitMode);
+      String measurementsString = getRealtimeDataString(circuitMode,getPulseState());
       sendBLEString(measurementsString);
     }
   }

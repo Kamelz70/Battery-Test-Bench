@@ -15,6 +15,7 @@ struct VoltageCurrentReading {
   float voltage;
   float current;
   float voltage_diff;
+  float soc;
 };
 
 #endif

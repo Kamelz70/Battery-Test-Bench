@@ -124,6 +124,10 @@ void triggerSafetyRelay()
 {
   digitalWrite(SAFETY_RELAY_PIN, LOW); // Relay ON during discharging/charging
 }
+bool getPulseState()
+{
+  return pulseState;
+}
 void handleCharging()
 {
   ledcWrite(0, 0);

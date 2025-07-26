@@ -14,6 +14,7 @@ float getCircuitCurrent();
 void setPulseOnTime(unsigned long pulseOnTimeInput);
 void setPulseOffTime(unsigned long pulseOffTimeInput);
 void setDesiredCurrent(float desiredCurrentInput);
+bool getPulseState();
 void triggerSafetyRelay();
 
 #endif

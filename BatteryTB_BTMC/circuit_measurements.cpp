@@ -67,8 +67,15 @@ VoltageCurrentReading getVoltageAndCurrent(enum CIRCUITMODE CircuitMode)
   return result;
 }
 
-
-String getRealtimeDataString(enum CIRCUITMODE circuitMode)
+float getSOC(enum CIRCUITMODE CircuitMode,float voltage,bool pulseState)
+{
+  if(CircuitMode==CIRCUITOFF||pulseState==false)
+  {
+    return -1;
+  }
+  return (100-((4.8-voltage)/0.02));  
+}
+String getRealtimeDataString(enum CIRCUITMODE circuitMode,bool pulseState)
 {
   String modeString = "o";
   switch (circuitMode)
@@ -92,7 +99,7 @@ String getRealtimeDataString(enum CIRCUITMODE circuitMode)
   float voltage = VoltageCurrentS.voltage;
   float temperature = getSavedTemperature();
   float soh = MIN_SOH + (rand() % (int)((MAX_SOH - MIN_SOH) * 100)) / 100.0;
-  float soc = MIN_SOC + (rand() % (int)((MAX_SOC - MIN_SOC) * 100)) / 100.0;
-
-  return String(voltage, 2) + "," + String(current, 2) + "," + String(temperature, 2) + "," + String(soh, 2) + "," + String(soc, 2) + "," + modeString;
+  float soc = getSOC(circuitMode,voltage,pulseState);
+  String result=String(voltage, 2) + "," + String(current, 2) + "," + String(temperature, 2) + "," + String(soh, 2) + "," + String(soc, 2) + "," + modeString;
+  return result;
 }
